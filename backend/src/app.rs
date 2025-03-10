@@ -1,10 +1,13 @@
-use crate::{routes::anvil, state::AppState};
+use crate::{
+    routes::{anvil, challenge},
+    state::AppState,
+};
 use axum::Router;
 
 pub fn build(app_state: AppState) -> Router {
     Router::new()
         // .merge(user::router())
-        // .merge(challenge::router())
+        .merge(challenge::router())
         // .layer(middleware::from_fn(auth::authenticate))
         .merge(anvil::router())
         // .route("/register", post(user::register::register))
