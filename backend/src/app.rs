@@ -1,5 +1,5 @@
 use crate::{
-    routes::{anvil, challenge},
+    routes::{anvil, challenge, user},
     state::AppState,
 };
 use axum::Router;
@@ -10,6 +10,7 @@ pub fn build(app_state: AppState) -> Router {
         .merge(challenge::router())
         // .layer(middleware::from_fn(auth::authenticate))
         .merge(anvil::router())
+        .merge(user::router())
         // .route("/register", post(user::register::register))
         // .route("/login", post(user::login::login))
         // .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))

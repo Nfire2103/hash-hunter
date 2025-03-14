@@ -1,6 +1,6 @@
 use crate::config::Config;
 use sqlx::{PgPool, FromRow};
-use std::{sync::Arc, time::SystemTime};
+use std::sync::Arc;
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 
