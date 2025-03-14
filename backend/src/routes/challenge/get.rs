@@ -1,7 +1,22 @@
-use axum::Json;
+use axum::{extract::{Extension, Path}, Json};
+use crate::{error::AppResult, error::AppError, routes::challenge::{ApiContext, ChallengeBody}};
 
-use crate::error::AppResult;
 
-pub async fn get() -> AppResult<Json<()>> {
-    Ok(Json(()))
+#[axum::debug_handler]
+pub async fn get(
+    ctx: Extension<ApiContext>,
+    Path(uuid): Path<String>,
+) -> AppResult<Json<ChallengeBody>> {
+    let challenge = sqlx::query_as(
+        "SELECT
+        (id, author_id, title, description, code, bytecode, difficulty, solved, created_at, updated_at)
+        FROM challenge
+        WHERE id = $1"
+    )
+    .bind(uuid)
+    .fetch_optional(&ctx.db)
+    .await?
+    .ok_or(AppError::SqlxRowNotFound)?;
+
+    Ok(Json(ChallengeBody {challenge}))
 }
