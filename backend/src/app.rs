@@ -3,7 +3,7 @@ use tower_http::add_extension::AddExtensionLayer;
 
 use crate::{
     middlewares::auth,
-    routes::{challenge, node, rpc},
+    routes::{challenge, user, node, rpc},
     state::AppState,
 };
 
