@@ -28,6 +28,12 @@ pub enum AppError {
 
     #[error(transparent)]
     UnexpectedError(#[from] anyhow::Error),
+
+    #[error(transparent)]
+    SqlxError(#[from] sqlx::Error),
+
+    #[error("request path not found")]
+    SqlxRowNotFound,
 }
 
 #[derive(serde::Serialize)]
