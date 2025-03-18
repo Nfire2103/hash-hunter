@@ -1,0 +1,15 @@
+**/Dockerfile*
+**/.dockerignore
+**/.DS_Store
+**/.env
+**/.env.example
+**/.git
+**/.gitignore
+**/target
+**/.vscode
+
+charts
+migrations
+target
+tests
+README.md
