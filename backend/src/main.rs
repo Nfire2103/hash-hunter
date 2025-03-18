@@ -1,5 +1,5 @@
 use anyhow::Result;
-use backend::{AppState, Config};
+use backend::{AppConfig, AppState};
 use clap::Parser;
 use tokio::net::TcpListener;
 use tracing::info;
@@ -10,10 +10,10 @@ async fn main() -> Result<()> {
 
     dotenvy::dotenv().ok();
 
-    let config = Config::parse();
+    let config = AppConfig::parse();
     let address = config.address;
 
-    let app = backend::build(AppState::try_from(config)?);
+    let app = backend::build(AppState::try_from_conf(config).await?);
     let listener = TcpListener::bind(address).await?;
 
     info!("Listening on {}", address);

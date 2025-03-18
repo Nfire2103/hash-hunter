@@ -1,24 +1,22 @@
+use anyhow::Result;
 use sqlx::{PgPool, postgres::PgPoolOptions};
 
-use crate::Config;
+use crate::{config::AppConfig, routes::node::NodeState};
 
-#[derive(Clone)]
 pub struct AppState {
     pub pool: PgPool,
     pub http_client: reqwest::Client,
-    pub anvil_uri: String,
+    pub node_state: NodeState,
 }
 
-impl TryFrom<Config> for AppState {
-    type Error = anyhow::Error;
-
-    fn try_from(config: Config) -> Result<Self, Self::Error> {
+impl AppState {
+    pub async fn try_from_conf(config: AppConfig) -> Result<Self> {
         Ok(Self {
             pool: PgPoolOptions::new()
-                .max_connections(config.db_max_connections)
-                .connect_lazy(&config.db_uri)?,
+                .max_connections(config.database.database_max_connections)
+                .connect_lazy(&config.database.database_url)?,
             http_client: reqwest::Client::new(),
-            anvil_uri: config.anvil_uri,
+            node_state: NodeState::try_from_args(config.node).await?,
         })
     }
 }

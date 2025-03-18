@@ -1,17 +1,21 @@
-use clap::{Parser, ValueHint};
-
-#[derive(Parser)]
+#[derive(clap::Parser)]
 #[command(version)]
-pub struct Config {
+pub struct AppConfig {
     #[clap(long, env)]
     pub address: std::net::SocketAddr,
 
+    #[clap(flatten, next_help_heading = "Database options")]
+    pub database: DatabaseArgs,
+
+    #[clap(flatten, next_help_heading = "Node options")]
+    pub node: crate::routes::node::NodeArgs,
+}
+
+#[derive(clap::Args)]
+pub struct DatabaseArgs {
     #[arg(long, env)]
-    pub db_uri: String,
+    pub database_url: String,
 
     #[arg(long, env)]
-    pub db_max_connections: u32,
-
-    #[clap(long, env, value_hint = ValueHint::Url)]
-    pub anvil_uri: String,
+    pub database_max_connections: u32,
 }
