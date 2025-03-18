@@ -6,11 +6,12 @@ CREATE TABLE challenge (
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     code TEXT NOT NULL,
-    bytecode BYTEA NOT NULL,
+    bytecode TEXT NOT NULL,
+    value TEXT NOT NULL,
     difficulty SMALLINT NOT NULL,
     solved INTEGER NOT NULL DEFAULT 0,
     blockchain blockchain_type NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(), -- TODO maybe use timestampz
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
