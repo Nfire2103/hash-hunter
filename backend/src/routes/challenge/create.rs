@@ -1,12 +1,7 @@
-use axum::{Extension, Json, extract::State};
+use axum::Json;
 
-use crate::{AppState, error::AppResult};
+use crate::error::AppResult;
 
-// TODO replace () by the right type
-pub async fn create(
-    Extension(user_id): Extension<i32>,
-    State(state): State<AppState>,
-    Json(req): Json<()>,
-) -> AppResult<Json<()>> {
+pub async fn create() -> AppResult<Json<()>> {
     Ok(Json(()))
 }
