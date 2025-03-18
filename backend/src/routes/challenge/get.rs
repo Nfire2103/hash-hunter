@@ -1,11 +1,12 @@
 use axum::{extract::{Extension, Path}, Json};
+use uuid::Uuid;
 use crate::{error::AppResult, error::AppError, routes::challenge::{ApiContext, ChallengeBody}};
 
 
 #[axum::debug_handler]
 pub async fn get(
     ctx: Extension<ApiContext>,
-    Path(uuid): Path<String>,
+    Path(uuid): Path<Uuid>,
 ) -> AppResult<Json<ChallengeBody>> {
     let challenge = sqlx::query_as(
         "SELECT

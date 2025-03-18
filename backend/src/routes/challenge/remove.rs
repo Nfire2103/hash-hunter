@@ -1,12 +1,6 @@
 use axum::extract::{Extension, Path};
-use crate::{error::AppResult, routes::challenge::{ApiContext, Challenge}};
+use crate::{error::AppResult, routes::challenge::ApiContext};
 use uuid::Uuid;
-
-#[derive(serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ChallengeBody {
-    pub challenge: Challenge,
-}
 
 #[axum::debug_handler]
 pub async fn remove(

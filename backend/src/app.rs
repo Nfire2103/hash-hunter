@@ -14,6 +14,7 @@ pub fn build(app_state: AppState) -> Router {
         .merge(node::router().with_state(app_state.node_state))
         .layer(middleware::from_fn(auth::authenticate))
         .merge(rpc::router().with_state(app_state.http_client))
+        .merge(user::router())
         // .route("/register", post(user::register::register))
         // .route("/login", post(user::login::login))
         .layer(AddExtensionLayer::new(app_state.pool))
