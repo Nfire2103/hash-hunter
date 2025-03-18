@@ -1,7 +1,10 @@
-use axum::{extract::{Extension, Path}, Json};
-use crate::{error::AppResult, error::AppError};
 use uuid::Uuid;
-use super::{ApiContext, UserBody};
+use axum::{extract::{Extension, Path}, Json};
+
+use crate::{error::AppResult, error::AppError};
+use crate::routes::ApiContext;
+
+use super::UserBody;
 
 #[axum::debug_handler]
 pub async fn get(

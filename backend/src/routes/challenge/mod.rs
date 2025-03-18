@@ -1,6 +1,4 @@
-use crate::config::Config;
-use sqlx::{PgPool, FromRow};
-use std::sync::Arc;
+use sqlx::FromRow;
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 
@@ -13,12 +11,6 @@ use axum::{
     Router,
     routing::{delete, get, post, put},
 };
-
-#[derive(Clone)]
-struct ApiContext {
-    config: Arc<Config>,
-    db: PgPool,
-}
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]

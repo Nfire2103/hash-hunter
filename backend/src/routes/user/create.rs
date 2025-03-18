@@ -1,7 +1,8 @@
 use axum::{Extension, Json,};
 use crate::error::AppResult;
+use crate::routes::ApiContext;
 
-use super::{ApiContext, NewUser, User, UserBody, hash_password};
+use super::{NewUser, User, UserBody, hash_password};
 
 #[axum::debug_handler]
 pub async fn create(

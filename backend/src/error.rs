@@ -27,6 +27,9 @@ pub enum AppError {
 
     #[error("request path not found")]
     SqlxRowNotFound,
+
+    #[error("authentication required")]
+    Unauthorized,
 }
 
 pub type RpcMethodDoesNotExistError = RpcError;
