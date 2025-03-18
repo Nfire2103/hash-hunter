@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ node }}-{{ uuid }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ node }}-{{ uuid }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ node }}-{{ uuid }}
+    spec:
+      containers:
+        - name: {{ node }}
+          image: nfire2103/{{ node }}:debian
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8545
+          resources:
+            requests:
+              memory: 16M
+              cpu: 10m
+            limits:
+              memory: 64M
+              cpu: 100m
