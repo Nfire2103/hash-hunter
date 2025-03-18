@@ -1,5 +1,5 @@
 use axum::extract::{Extension, Path};
-use crate::{error::AppResult, routes::challenge::ApiContext};
+use crate::{error::AppResult, routes::ApiContext};
 use uuid::Uuid;
 
 #[axum::debug_handler]

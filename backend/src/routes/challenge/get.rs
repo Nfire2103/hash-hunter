@@ -1,7 +1,7 @@
 use axum::{extract::{Extension, Path}, Json};
 use uuid::Uuid;
-use crate::{error::AppResult, error::AppError, routes::challenge::{ApiContext, ChallengeBody}};
-
+use crate::{error::AppResult, error::AppError};
+use crate::routes::{challenge::ChallengeBody, ApiContext};
 
 #[axum::debug_handler]
 pub async fn get(

@@ -34,6 +34,9 @@ pub enum AppError {
 
     #[error("request path not found")]
     SqlxRowNotFound,
+
+    #[error("authentication required")]
+    Unauthorized,
 }
 
 #[derive(serde::Serialize)]

@@ -1,11 +1,10 @@
-use crate::config::Config;
-use sqlx::{prelude::FromRow, PgPool};
-use std::sync::Arc;
+use sqlx::prelude::FromRow;
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 use argon2::password_hash::SaltString;
 use argon2::{Argon2, PasswordHash};
 use anyhow::Context;
+use crate::routes::auth;
 
 mod create;
 mod get;
@@ -15,13 +14,8 @@ mod update;
 use axum::{
     Router,
     routing::{get, post, put, delete},
+    middleware
 };
-
-#[derive(Clone)]
-struct ApiContext {
-    config: Arc<Config>,
-    db: PgPool,
-}
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -57,9 +51,10 @@ use crate::AppState;
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/user", post(create::create))
-        .route("/user/{uuid}", get(get::get))
-        .route("/user/{uuid}", put(update::update))
-        .route("/user/{uuid}", delete(remove::remove))
+        .route("/user/signin", post(auth::sign_in))
+        .route("/user/{uuid}", get(get::get)).layer(middleware::from_fn(auth::authorize))
+        .route("/user/{uuid}", put(update::update).layer(middleware::from_fn(auth::authorize)))
+        .route("/user/{uuid}", delete(remove::remove).layer(middleware::from_fn(auth::authorize)))
 }
 
 async fn hash_password(password: String) -> Result<String, anyhow::Error> {

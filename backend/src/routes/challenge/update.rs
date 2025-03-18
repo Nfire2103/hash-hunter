@@ -1,7 +1,8 @@
 use axum::{Extension, Json,};
 use crate::error::AppResult;
+use crate::routes::ApiContext;
 
-use super::{ApiContext, UpdateChallenge, ChallengeBody, Challenge};
+use super::{UpdateChallenge, ChallengeBody, Challenge};
 
 
 #[axum::debug_handler]
