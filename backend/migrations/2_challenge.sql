@@ -2,7 +2,7 @@ CREATE TYPE blockchain_type AS ENUM ('ethereum', 'solana');
 
 CREATE TABLE challenge (
     id uuid DEFAULT uuid_generate_v1mc(),
-    author_id uuid NOT NULL REFERENCES "user"(id),
+    author_id uuid NOT NULL,
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     code TEXT NOT NULL,

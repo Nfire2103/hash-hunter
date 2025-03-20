@@ -47,7 +47,7 @@ pub async fn register(
     }))
 }
 
-async fn hash_password(password: String) -> Result<String> {
+pub async fn hash_password(password: String) -> Result<String> {
     let hash = move || -> Result<String> {
         let salt = SaltString::generate(&mut OsRng);
         let password_hash = PasswordHash::generate(Argon2::default(), password, &salt)

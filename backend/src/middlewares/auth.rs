@@ -22,9 +22,9 @@ pub struct AuthUserClaims {
 }
 
 #[derive(Clone, Copy)]
-pub struct MyAuth;
+pub struct TokenAuth;
 
-impl<B> AsyncAuthorizeRequest<B> for MyAuth
+impl<B> AsyncAuthorizeRequest<B> for TokenAuth
 where
     B: Send + 'static,
 {

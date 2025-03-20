@@ -14,6 +14,9 @@ pub enum AppError {
     #[error("You are not authenticated")]
     Unauthorized,
 
+    #[error("You do not have permission")]
+    Forbidden,
+
     #[error("The entity does not exist")]
     NotFound,
 
@@ -58,6 +61,11 @@ impl IntoResponse for AppError {
             Self::Unauthorized => (
                 StatusCode::UNAUTHORIZED,
                 Json(ErrorResponse::new("Unauthorized", self.to_string())),
+            )
+                .into_response(),
+            Self::Forbidden => (
+                StatusCode::FORBIDDEN,
+                Json(ErrorResponse::new("Forbidden", self.to_string())),
             )
                 .into_response(),
             Self::NotFound => (
