@@ -3,13 +3,16 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use super::Challenge;
-use crate::error::{AppError, AppResult};
+use crate::{
+    AppState,
+    error::{AppError, AppResult},
+};
 
 pub async fn get(
-    Extension(pool): Extension<PgPool>,
+    Extension(app_state): Extension<AppState>,
     Path(uuid): Path<Uuid>,
 ) -> AppResult<Json<Challenge>> {
-    let challenge = get_challenge(&pool, &uuid).await?;
+    let challenge = get_challenge(&app_state.pool, &uuid).await?;
     Ok(Json(challenge))
 }
 

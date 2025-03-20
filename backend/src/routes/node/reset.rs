@@ -8,7 +8,6 @@ use kube::{
     Api,
     runtime::{conditions::is_deleted, wait::await_condition},
 };
-use sqlx::PgPool;
 use tokio::time::{Duration, timeout};
 use uuid::Uuid;
 
@@ -17,25 +16,25 @@ use super::{
     create::{NodeCreateResponse, deploy_instances, wait_pod_running},
     get::get_node,
 };
-use crate::{error::AppResult, routes::challenge::get_challenge};
+use crate::{AppState, error::AppResult, routes::challenge::get_challenge};
 
 pub async fn reset(
-    Extension(pool): Extension<PgPool>,
+    Extension(app_state): Extension<AppState>,
     State(state): State<NodeState>,
     Path(uuid): Path<Uuid>,
 ) -> AppResult<Json<NodeCreateResponse>> {
-    let node = get_node(&pool, &uuid).await?;
-    let challenge = get_challenge(&pool, &node.challenge_id).await?;
+    let node = get_node(&app_state.pool, &uuid).await?;
+    let challenge = get_challenge(&app_state.pool, &node.challenge_id).await?;
 
     let node_name = format!("{}-{}", node.node_type, uuid);
     let deployments: Api<Deployment> = Api::default_namespaced(state.kube_client.clone());
 
     deployments.restart(&node_name).await?;
     wait_pod_deleted(&state, &node.pod_name, &node.pod_uid).await?;
-    wait_pod_running(&pool, &state, &uuid, &node_name).await?;
+    wait_pod_running(&app_state.pool, &state, &uuid, &node_name).await?;
 
     let ((pubkey, privatekey), instances) =
-        deploy_instances(&pool, &uuid, &node_name, &challenge).await?;
+        deploy_instances(&app_state.pool, &uuid, &node_name, &challenge).await?;
 
     Ok(Json(NodeCreateResponse {
         node_id: uuid,

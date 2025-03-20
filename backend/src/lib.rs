@@ -8,4 +8,5 @@ mod state;
 
 pub use app::build;
 pub use config::AppConfig;
+pub use routes::node::NodeState;
 pub use state::AppState;

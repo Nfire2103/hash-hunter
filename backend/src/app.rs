@@ -1,21 +1,24 @@
-use axum::{Router, middleware};
-use tower_http::add_extension::AddExtensionLayer;
+use axum::Router;
+use tower_http::{add_extension::AddExtensionLayer, auth::AsyncRequireAuthorizationLayer};
 
 use crate::{
-    middlewares::auth,
-    routes::{challenge, node, rpc},
-    state::AppState,
+    AppState,
+    middlewares::auth::MyAuth,
+    routes::{
+        challenge,
+        node::{self, NodeState},
+        rpc, user,
+    },
 };
 
-pub fn build(app_state: AppState) -> Router {
+pub fn build(app_state: AppState, node_state: NodeState) -> Router {
     Router::new()
         // .merge(user::router())
         .merge(challenge::router())
-        .merge(node::router().with_state(app_state.node_state))
-        .layer(middleware::from_fn(auth::authenticate))
-        .merge(rpc::router().with_state(app_state.http_client))
-        // .route("/register", post(user::register::register))
-        // .route("/login", post(user::login::login))
-        .layer(AddExtensionLayer::new(app_state.pool))
+        .merge(node::router().with_state(node_state))
+        .layer(AsyncRequireAuthorizationLayer::new(MyAuth))
+        .merge(rpc::router().with_state(reqwest::Client::new()))
+        .merge(user::auth_router())
+        .layer(AddExtensionLayer::new(app_state))
     // .layer(CorsLayer::permissive()) // TODO configure cors properly
 }

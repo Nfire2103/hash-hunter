@@ -11,8 +11,14 @@ pub type AppResult<T> = Result<T, AppError>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum AppError {
+    #[error("You are not authenticated")]
+    Unauthorized,
+
     #[error("The entity does not exist")]
     NotFound,
+
+    #[error("This {0} is already taken")]
+    Conflict(String),
 
     #[error(transparent)]
     RpcMethodDoesNotExist(#[from] RpcMethodDoesNotExistError),
@@ -49,9 +55,19 @@ impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         match self {
             Self::RpcMethodDoesNotExist(err) => (StatusCode::OK, err.to_string()).into_response(),
+            Self::Unauthorized => (
+                StatusCode::UNAUTHORIZED,
+                Json(ErrorResponse::new("Unauthorized", self.to_string())),
+            )
+                .into_response(),
             Self::NotFound => (
                 StatusCode::NOT_FOUND,
                 Json(ErrorResponse::new("Not found", self.to_string())),
+            )
+                .into_response(),
+            Self::Conflict(_) => (
+                StatusCode::CONFLICT,
+                Json(ErrorResponse::new("Conflict", self.to_string())),
             )
                 .into_response(),
             _ => {
@@ -64,5 +80,26 @@ impl IntoResponse for AppError {
                     .into_response()
             },
         }
+    }
+}
+
+pub trait ResultExt<T> {
+    fn on_constraint_conflict(self, constraint: &str) -> Result<T, AppError>;
+}
+
+impl<T, E> ResultExt<T> for Result<T, E>
+where
+    E: Into<AppError>,
+{
+    fn on_constraint_conflict(self, constraint: &str) -> Result<T, AppError> {
+        self.map_err(|err| match err.into() {
+            AppError::DatabaseError(sqlx::Error::Database(dbe))
+                if dbe.constraint() == Some(constraint) =>
+            {
+                let attribute = constraint.split('_').nth(1).unwrap_or_default();
+                AppError::Conflict(attribute.to_string())
+            },
+            err => err,
+        })
     }
 }

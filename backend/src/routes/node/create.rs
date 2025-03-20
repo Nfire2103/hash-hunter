@@ -16,6 +16,7 @@ use uuid::Uuid;
 
 use super::state::NodeState;
 use crate::{
+    AppState,
     blockchain::NodeType,
     error::AppResult,
     routes::challenge::{Challenge, get_challenge},
@@ -38,21 +39,21 @@ pub struct NodeCreateResponse {
 }
 
 pub async fn create(
-    Extension(user_id): Extension<Uuid>, // TODO maybe replace by AuthUser
-    Extension(pool): Extension<PgPool>,
+    Extension(user_id): Extension<Uuid>,
+    Extension(app_state): Extension<AppState>,
     State(state): State<NodeState>,
     Json(req): Json<NodeCreateRequest>,
 ) -> AppResult<Json<NodeCreateResponse>> {
-    let challenge = get_challenge(&pool, &req.challenge_id).await?;
+    let challenge = get_challenge(&app_state.pool, &req.challenge_id).await?;
 
     let node_type = NodeType::from(&challenge.blockchain);
-    let node_id = create_node(&pool, &user_id, &challenge.id, &node_type).await?;
+    let node_id = create_node(&app_state.pool, &user_id, &challenge.id, &node_type).await?;
 
     let node_name = deploy_node(&state, &node_type, &node_id).await?;
-    wait_pod_running(&pool, &state, &node_id, &node_name).await?;
+    wait_pod_running(&app_state.pool, &state, &node_id, &node_name).await?;
 
     let ((pubkey, privatekey), instances) =
-        deploy_instances(&pool, &node_id, &node_name, &challenge).await?;
+        deploy_instances(&app_state.pool, &node_id, &node_name, &challenge).await?;
 
     Ok(Json(NodeCreateResponse {
         node_id,
