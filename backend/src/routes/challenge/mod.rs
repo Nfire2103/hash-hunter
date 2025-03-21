@@ -1,5 +1,10 @@
+use sqlx::FromRow;
+use serde::{Serialize, Deserialize};
+use uuid::Uuid;
+use crate::blockchain::BlockchainType;
+
 mod create;
-mod get;
+pub mod get;
 mod remove;
 mod update;
 
@@ -7,14 +12,20 @@ use axum::{
     Router,
     routing::{delete, get, post, put},
 };
-use chrono::NaiveDateTime;
-pub use get::get_challenge;
-use uuid::Uuid;
 
-use crate::blockchain::BlockchainType;
+#[derive(Serialize, Deserialize)]
+pub struct NewChallenge {
+    pub author_id: Uuid,
+    pub title: String,
+    pub description: String,
+    pub code: String,
+    pub bytecode: String,
+    pub value: String,
+    pub difficulty: i16,
+    pub blockchain: BlockchainType
+}
 
-#[derive(serde::Serialize, sqlx::FromRow)]
-#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, FromRow)]
 pub struct Challenge {
     pub id: Uuid,
     pub author_id: Uuid,
@@ -26,8 +37,19 @@ pub struct Challenge {
     pub difficulty: i16,
     pub solved: i32,
     pub blockchain: BlockchainType,
-    pub created_at: NaiveDateTime,
-    pub updated_at: NaiveDateTime,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct UpdateChallenge {
+    pub id: Option<Uuid>,
+    pub author_id: Option<Uuid>,
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub code: Option<String>,
+    pub bytecode: Option<String>,
+    pub difficulty: Option<i16>,
 }
 
 pub fn router() -> Router {
