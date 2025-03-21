@@ -3,6 +3,7 @@ use sqlx::{PgPool, postgres::PgPoolOptions};
 
 use crate::{config::AppConfig, routes::node::NodeState};
 
+#[derive(Clone)]
 pub struct AppState {
     pub pool: PgPool,
     pub http_client: reqwest::Client,

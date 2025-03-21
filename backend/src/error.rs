@@ -30,7 +30,7 @@ pub enum AppError {
     UnexpectedError(#[from] anyhow::Error),
 
     #[error(transparent)]
-    SqlxError(#[from] sqlx::Error),
+    SqlxError(sqlx::Error),
 
     #[error("request path not found")]
     SqlxRowNotFound,

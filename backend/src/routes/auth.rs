@@ -6,7 +6,7 @@ use axum::{
     http::{Response, StatusCode},
     middleware::Next,
 };
-use bcrypt::{hash, verify, DEFAULT_COST};
+use bcrypt::verify;
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
 use serde::{Deserialize, Serialize};
@@ -29,10 +29,6 @@ pub fn verify_password(password: &str, hash: &str) -> Result<bool, bcrypt::Bcryp
     verify(password, hash)
 }
 
-pub fn hash_password(password: &str) -> Result<String, bcrypt::BcryptError> {
-    let hash = hash(password, DEFAULT_COST)?;
-    Ok(hash)
-}
 
 impl IntoResponse for AuthError {
     fn into_response(self) -> Response<Body> {

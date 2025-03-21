@@ -1,25 +1,28 @@
-use axum::{Extension, Json,};
-use crate::error::{AppResult, AppError};
-use crate::routes::ApiContext;
+use axum::{Extension, Json};
+use sqlx::PgPool;
 
-use super::Challenge;
+use super::NewChallenge;
+use crate::error::{AppError, AppResult};
 
-#[axum::debug_handler]
-pub async fn create(
-    ctx: Extension<ApiContext>,
-    Json(req): Json<Challenge>,
-) -> AppResult<()> {
+pub async fn create(Extension(pool): Extension<PgPool>, Json(req): Json<NewChallenge>) -> AppResult<()> {
+    create_challenge(&pool, req).await?;
+    Ok(())
+}
+
+pub async fn create_challenge(pool: &PgPool, req: NewChallenge) -> AppResult<()> {
     sqlx::query(
-        "INSERT INTO challenge (author_id, title, description, code, bytecode, difficulty)
-        VALUES ($1, $2, $3, $4, $5, $6)",
+        "INSERT INTO challenge (author_id, title, description, code, bytecode, value, difficulty, blockchain)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
     )
     .bind(&req.author_id)
     .bind(&req.title)
     .bind(&req.description)
     .bind(&req.code)
     .bind(&req.bytecode)
+    .bind(&req.value)
     .bind(&req.difficulty)
-    .execute(&ctx.db)
+    .bind(&req.blockchain)
+    .execute(pool)
     .await
     .map_err(AppError::SqlxError)?;
 

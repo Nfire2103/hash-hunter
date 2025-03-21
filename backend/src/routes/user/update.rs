@@ -1,15 +1,19 @@
 use axum::{Extension, Json,};
 use crate::error::AppResult;
-use crate::routes::ApiContext;
+use sqlx::PgPool;
 
-use super::{UpdateUser, UserBody, User, hash_password};
+use super::{UpdateUser, User, hash_password};
 
 
-#[axum::debug_handler]
-pub async fn update(
-    ctx: Extension<ApiContext>,
-    Json(req): Json<UpdateUser>,
-) -> AppResult<Json<UserBody>> {
+pub async fn update(Extension(pool): Extension<PgPool>, Json(req): Json<UpdateUser>) -> AppResult<Json<User>> {
+    let challenge = update_user(&pool, req).await?;
+    Ok(challenge)
+}
+
+pub async fn update_user(
+    pool: &PgPool,
+    req: UpdateUser,
+) -> AppResult<Json<User>> {
 
     let password_hash = if let Some(password) = req.password {
         Some(hash_password(password).await?)
@@ -30,9 +34,9 @@ pub async fn update(
     .bind(&req.username)
     .bind(password_hash)
     .bind(&req.id)
-    .fetch_one(&ctx.db)
+    .fetch_one(pool)
     .await?;
 
-    Ok(Json(UserBody {user}))
+    Ok(Json(user))
 }
 

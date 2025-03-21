@@ -18,7 +18,7 @@ use super::state::NodeState;
 use crate::{
     blockchain::NodeType,
     error::AppResult,
-    routes::challenge::{Challenge, get_challenge},
+    routes::challenge::{Challenge, get::get_challenge},
 };
 
 #[derive(serde::Deserialize)]

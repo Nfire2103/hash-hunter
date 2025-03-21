@@ -1,18 +1,21 @@
 use axum::extract::{Extension, Path};
-use crate::{error::AppResult, routes::ApiContext};
+use sqlx::PgPool;
 use uuid::Uuid;
 
-#[axum::debug_handler]
-pub async fn remove(
-    ctx: Extension<ApiContext>,
-    Path(uuid): Path<Uuid>,
-) -> AppResult<()> {
+use crate::error::AppResult;
+
+pub async fn remove(Extension(pool): Extension<PgPool>, Path(uuid): Path<Uuid>) -> AppResult<()> {
+    remove_challenge(&pool, &uuid).await?;
+    Ok(())
+}
+
+pub async fn remove_challenge(pool: &PgPool, uuid: &Uuid) -> AppResult<()> {
     sqlx::query(
         "DELETE FROM challenge
-        WHERE id = $1"
+        WHERE id = $1",
     )
     .bind(&uuid)
-    .execute(&ctx.db)
+    .execute(pool)
     .await?;
 
     Ok(())

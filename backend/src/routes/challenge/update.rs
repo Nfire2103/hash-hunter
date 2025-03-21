@@ -1,15 +1,19 @@
 use axum::{Extension, Json,};
 use crate::error::AppResult;
-use crate::routes::ApiContext;
+use sqlx::PgPool;
 
-use super::{UpdateChallenge, ChallengeBody, Challenge};
+use super::Challenge;
 
 
-#[axum::debug_handler]
-pub async fn update(
-    ctx: Extension<ApiContext>,
-    Json(req): Json<UpdateChallenge>,
-) -> AppResult<Json<ChallengeBody>> {
+pub async fn update(Extension(pool): Extension<PgPool>, Json(req): Json<Challenge>) -> AppResult<Json<Challenge>> {
+    let challenge = update_challenge(&pool, req).await?;
+    Ok(challenge)
+}
+
+pub async fn update_challenge(
+    pool: &PgPool,
+    req: Challenge,
+) -> AppResult<Json<Challenge>> {
     let challenge = sqlx::query_as::<_, Challenge>(
         "UPDATE challenge
         SET author_id = coalesce($1, challenge.author_id),
@@ -17,8 +21,10 @@ pub async fn update(
             description = coalesce($3, challenge.description),
             code = coalesce($4, challenge.code),
             bytecode = coalesce($5, challenge.bytecode),
-            difficulty = coalesce($6, challenge.difficulty)
-        WHERE id = $7
+            value = coalesce($6, challenge.value),
+            difficulty = coalesce($7, challenge.difficulty)
+            blockchain = coalesce($8, challenge.blockchain)
+        WHERE id = $9
         RETURNING id, author_id, title, description, code, bytecode, difficulty, solved, created_at, updated_at"
     )
     .bind(&req.author_id)
@@ -26,11 +32,13 @@ pub async fn update(
     .bind(&req.description)
     .bind(&req.code)
     .bind(&req.bytecode)
+    .bind(&req.value)
     .bind(&req.difficulty)
+    .bind(&req.blockchain)
     .bind(&req.id)
-    .fetch_one(&ctx.db)
+    .fetch_one(pool)
     .await?;
 
-    Ok(Json(ChallengeBody {challenge}))
+    Ok(Json(challenge))
 }
 

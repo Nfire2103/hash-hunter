@@ -17,7 +17,7 @@ use super::{
     create::{NodeCreateResponse, deploy_instances, wait_pod_running},
     get::get_node,
 };
-use crate::{error::AppResult, routes::challenge::get_challenge};
+use crate::{error::AppResult, routes::challenge::get::get_challenge};
 
 pub async fn reset(
     Extension(pool): Extension<PgPool>,
