@@ -2,8 +2,8 @@ CREATE TYPE node_type AS ENUM ('anvil', 'solana');
 
 CREATE TABLE node (
     id uuid DEFAULT uuid_generate_v1mc(),
-    user_id uuid NOT NULL REFERENCES "user"(id),
-    challenge_id uuid NOT NULL REFERENCES challenge(id),
+    user_id uuid NOT NULL,
+    challenge_id uuid NOT NULL,
     level TEXT,
     instances TEXT[],
     pod_name TEXT,

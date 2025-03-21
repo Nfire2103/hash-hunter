@@ -3,10 +3,16 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use super::Node;
-use crate::error::{AppError, AppResult};
+use crate::{
+    AppState,
+    error::{AppError, AppResult},
+};
 
-pub async fn get(Extension(pool): Extension<PgPool>, Path(uuid): Path<Uuid>) -> AppResult<Json<Node>> {
-    let node = get_node(&pool, &uuid).await?;
+pub async fn get(
+    Extension(app_state): Extension<AppState>,
+    Path(uuid): Path<Uuid>,
+) -> AppResult<Json<Node>> {
+    let node = get_node(&app_state.pool, &uuid).await?;
     Ok(Json(node))
 }
 

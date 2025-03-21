@@ -4,11 +4,10 @@ use axum::{
     extract::{Path, State},
 };
 use reqwest::Url;
-use sqlx::PgPool;
 use uuid::Uuid;
 
 use super::{NodeState, get::get_node, remove::remove_node};
-use crate::{blockchain::BlockchainType, error::AppResult};
+use crate::{AppState, blockchain::BlockchainType, error::AppResult};
 
 #[derive(serde::Serialize)]
 pub struct NodeValidateResponse {
@@ -16,11 +15,11 @@ pub struct NodeValidateResponse {
 }
 
 pub async fn validate(
-    Extension(pool): Extension<PgPool>,
+    Extension(app_state): Extension<AppState>,
     State(state): State<NodeState>,
     Path(uuid): Path<Uuid>,
 ) -> AppResult<Json<NodeValidateResponse>> {
-    let node = get_node(&pool, &uuid).await?;
+    let node = get_node(&app_state.pool, &uuid).await?;
     let node_url = Url::parse(&format!("http://{}-{}", node.node_type, uuid))
         .map_err(|_| anyhow!("Failed to parse url"))?;
 
@@ -33,7 +32,7 @@ pub async fn validate(
         .await?;
 
     if validated {
-        remove_node(&pool, &state, &node.node_type, &uuid).await?;
+        remove_node(&app_state.pool, &state, &node.node_type, &uuid).await?;
     }
 
     Ok(Json(NodeValidateResponse { validated }))

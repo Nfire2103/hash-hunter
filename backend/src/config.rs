@@ -4,6 +4,9 @@ pub struct AppConfig {
     #[clap(long, env)]
     pub address: std::net::SocketAddr,
 
+    #[clap(long, env)]
+    pub jwt_secret: String,
+
     #[clap(flatten, next_help_heading = "Database options")]
     pub database: DatabaseArgs,
 

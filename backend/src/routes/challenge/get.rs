@@ -4,10 +4,25 @@ use sqlx::PgPool;
 use crate::{error::AppResult, error::AppError};
 use crate::routes::challenge::Challenge;
 
+<<<<<<< HEAD
 
 pub async fn get(Extension(pool): Extension<PgPool>, Path(uuid): Path<Uuid>) -> AppResult<Json<Challenge>> {
     let challenge = get_challenge(&pool, &uuid).await?;
     Ok(challenge)
+=======
+use super::Challenge;
+use crate::{
+    AppState,
+    error::{AppError, AppResult},
+};
+
+pub async fn get(
+    Extension(app_state): Extension<AppState>,
+    Path(uuid): Path<Uuid>,
+) -> AppResult<Json<Challenge>> {
+    let challenge = get_challenge(&app_state.pool, &uuid).await?;
+    Ok(Json(challenge))
+>>>>>>> main
 }
 
 pub async fn get_challenge(
