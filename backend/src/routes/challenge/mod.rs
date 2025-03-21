@@ -1,21 +1,20 @@
-use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
-use uuid::Uuid;
-
-use crate::blockchain::BlockchainType;
-
 mod create;
-pub mod get;
+mod get;
 mod remove;
 mod update;
 
 use axum::{
-    Router,
-    routing::{delete, get, post, put},
+    Router, middleware,
+    routing::{delete, get, patch, post},
 };
-// enleve mes types et faire comme node/create et returne challenge
+use chrono::NaiveDateTime;
+pub use get::get_challenge;
+use uuid::Uuid;
 
-#[derive(Serialize, Deserialize, FromRow)]
+use crate::{blockchain::BlockchainType, middlewares::challenge::check_curr_user_is_owner};
+
+#[derive(serde::Serialize, sqlx::FromRow)]
+#[serde(rename_all = "camelCase")]
 pub struct Challenge {
     pub id: Uuid,
     pub author_id: Uuid,
@@ -27,25 +26,15 @@ pub struct Challenge {
     pub difficulty: i16,
     pub solved: i32,
     pub blockchain: BlockchainType,
-    pub created_at: chrono::DateTime<chrono::Utc>,
-    pub updated_at: chrono::DateTime<chrono::Utc>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct UpdateChallenge {
-    pub id: Option<Uuid>,
-    pub author_id: Option<Uuid>,
-    pub title: Option<String>,
-    pub description: Option<String>,
-    pub code: Option<String>,
-    pub bytecode: Option<String>,
-    pub difficulty: Option<i16>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 pub fn router() -> Router {
     Router::new()
-        .route("/challenge", post(create::create))
         .route("/challenge/{uuid}", get(get::get))
-        .route("/challenge/{uuid}", put(update::update))
+        .route("/challenge/{uuid}", patch(update::update))
         .route("/challenge/{uuid}", delete(remove::remove))
+        .layer(middleware::from_fn(check_curr_user_is_owner))
+        .route("/challenge", post(create::create))
 }

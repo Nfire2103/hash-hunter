@@ -1,4 +1,4 @@
-use axum::extract::{Extension, Path};
+use axum::{Extension, extract::Path};
 use uuid::Uuid;
 
 use crate::{
@@ -15,5 +15,6 @@ pub async fn remove(Extension(app_state): Extension<AppState>, Path(uuid): Path<
     if result.rows_affected() == 0 {
         return Err(AppError::NotFound);
     }
+
     Ok(())
 }
