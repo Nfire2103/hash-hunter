@@ -1,22 +1,19 @@
 use axum::extract::{Extension, Path};
-use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::error::AppResult;
+use crate::{
+    AppState,
+    error::{AppError, AppResult},
+};
 
-pub async fn remove(Extension(pool): Extension<PgPool>, Path(uuid): Path<Uuid>) -> AppResult<()> {
-    remove_challenge(&pool, &uuid).await?;
-    Ok(())
-}
+pub async fn remove(Extension(app_state): Extension<AppState>, Path(uuid): Path<Uuid>) -> AppResult<()> {
+    let result = sqlx::query("DELETE FROM challenge WHERE id = $1")
+        .bind(&uuid)
+        .execute(&app_state.pool)
+        .await?;
 
-pub async fn remove_challenge(pool: &PgPool, uuid: &Uuid) -> AppResult<()> {
-    sqlx::query(
-        "DELETE FROM challenge
-        WHERE id = $1",
-    )
-    .bind(&uuid)
-    .execute(pool)
-    .await?;
-
+    if result.rows_affected() == 0 {
+        return Err(AppError::NotFound);
+    }
     Ok(())
 }

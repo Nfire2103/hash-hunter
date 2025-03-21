@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
-use serde::{Serialize, Deserialize};
 use uuid::Uuid;
+
 use crate::blockchain::BlockchainType;
 
 mod create;
@@ -12,18 +13,7 @@ use axum::{
     Router,
     routing::{delete, get, post, put},
 };
-
-#[derive(Serialize, Deserialize)]
-pub struct NewChallenge {
-    pub author_id: Uuid,
-    pub title: String,
-    pub description: String,
-    pub code: String,
-    pub bytecode: String,
-    pub value: String,
-    pub difficulty: i16,
-    pub blockchain: BlockchainType
-}
+// enleve mes types et faire comme node/create et returne challenge
 
 #[derive(Serialize, Deserialize, FromRow)]
 pub struct Challenge {

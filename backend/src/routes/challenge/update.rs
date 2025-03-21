@@ -1,9 +1,8 @@
 use axum::{Extension, Json,};
-use crate::error::AppResult;
+use crate::error::{AppResult, AppError};
 use sqlx::PgPool;
 
 use super::Challenge;
-
 
 pub async fn update(Extension(pool): Extension<PgPool>, Json(req): Json<Challenge>) -> AppResult<Json<Challenge>> {
     let challenge = update_challenge(&pool, req).await?;
@@ -16,14 +15,14 @@ pub async fn update_challenge(
 ) -> AppResult<Json<Challenge>> {
     let challenge = sqlx::query_as::<_, Challenge>(
         "UPDATE challenge
-        SET author_id = coalesce($1, challenge.author_id),
-            title = coalesce($2, challenge.title),
-            description = coalesce($3, challenge.description),
-            code = coalesce($4, challenge.code),
-            bytecode = coalesce($5, challenge.bytecode),
-            value = coalesce($6, challenge.value),
-            difficulty = coalesce($7, challenge.difficulty)
-            blockchain = coalesce($8, challenge.blockchain)
+        SET author_id = COALESCE($1, challenge.author_id),
+            title = COALESCE($2, challenge.title),
+            description = COALESCE($3, challenge.description),
+            code = COALESCE($4, challenge.code),
+            bytecode = COALESCE($5, challenge.bytecode),
+            value = COALESCE($6, challenge.value),
+            difficulty = COALESCE($7, challenge.difficulty)
+            blockchain = COALESCE($8, challenge.blockchain)
         WHERE id = $9
         RETURNING id, author_id, title, description, code, bytecode, difficulty, solved, created_at, updated_at"
     )
@@ -36,8 +35,9 @@ pub async fn update_challenge(
     .bind(&req.difficulty)
     .bind(&req.blockchain)
     .bind(&req.id)
-    .fetch_one(pool)
-    .await?;
+    .fetch_optional(pool)
+    .await?
+    .ok_or(AppError::NotFound)?;
 
     Ok(Json(challenge))
 }
