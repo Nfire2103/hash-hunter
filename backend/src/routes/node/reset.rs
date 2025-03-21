@@ -16,11 +16,7 @@ use super::{
     create::{NodeCreateResponse, deploy_instances, wait_pod_running},
     get::get_node,
 };
-<<<<<<< HEAD
-use crate::{error::AppResult, routes::challenge::get::get_challenge};
-=======
-use crate::{AppState, error::AppResult, routes::challenge::get_challenge};
->>>>>>> main
+use crate::{error::AppResult, routes::challenge::get_challenge};
 
 pub async fn reset(
     Extension(app_state): Extension<AppState>,

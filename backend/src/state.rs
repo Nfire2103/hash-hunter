@@ -3,7 +3,6 @@ use sqlx::{PgPool, postgres::PgPoolOptions};
 
 use crate::config::AppConfig;
 
-#[derive(Clone)]
 pub struct AppState {
     pub pool: PgPool,
     pub jwt_secret: String,

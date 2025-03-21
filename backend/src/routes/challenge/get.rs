@@ -1,15 +1,8 @@
 use axum::{extract::{Extension, Path}, Json};
 use uuid::Uuid;
-use sqlx::PgPool;
 use crate::{error::AppResult, error::AppError};
 use crate::routes::challenge::Challenge;
 
-<<<<<<< HEAD
-
-pub async fn get(Extension(pool): Extension<PgPool>, Path(uuid): Path<Uuid>) -> AppResult<Json<Challenge>> {
-    let challenge = get_challenge(&pool, &uuid).await?;
-    Ok(challenge)
-=======
 use super::Challenge;
 use crate::{
     AppState,
@@ -22,7 +15,6 @@ pub async fn get(
 ) -> AppResult<Json<Challenge>> {
     let challenge = get_challenge(&app_state.pool, &uuid).await?;
     Ok(Json(challenge))
->>>>>>> main
 }
 
 pub async fn get_challenge(
@@ -31,14 +23,14 @@ pub async fn get_challenge(
 ) -> AppResult<Json<Challenge>> {
     let challenge = sqlx::query_as(
         "SELECT
-        (id, author_id, title, description, code, bytecode, value, difficulty, solved, blockchain, created_at, updated_at)
+        (id, author_id, title, description, code, bytecode, difficulty, solved, created_at, updated_at)
         FROM challenge
         WHERE id = $1"
     )
     .bind(uuid)
-    .fetch_optional(pool)
+    .fetch_optional(&ctx.db)
     .await?
     .ok_or(AppError::SqlxRowNotFound)?;
 
-    Ok(Json(challenge))
+    Ok(Json(ChallengeBody {challenge}))
 }

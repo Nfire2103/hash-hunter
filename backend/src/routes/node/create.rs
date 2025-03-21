@@ -19,7 +19,7 @@ use crate::{
     AppState,
     blockchain::NodeType,
     error::AppResult,
-    routes::challenge::{Challenge, get::get_challenge},
+    routes::challenge::{Challenge, get_challenge},
 };
 
 #[derive(serde::Deserialize)]

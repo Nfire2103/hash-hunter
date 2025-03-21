@@ -1,31 +1,32 @@
-use axum::{Extension, Json};
-use sqlx::PgPool;
-
-use super::{NewUser, User, hash_password};
+use axum::{Extension, Json,};
 use crate::error::AppResult;
+use crate::routes::ApiContext;
 
-pub async fn create(Extension(pool): Extension<PgPool>, Json(req): Json<NewUser>) -> AppResult<Json<User>> {
-    let user = create_user(&pool, req).await?;
-    Ok(user)
-}
+use super::{NewUser, User, UserBody, hash_password};
 
-pub async fn create_user(pool: &PgPool, req: NewUser) -> AppResult<Json<User>> {
+#[axum::debug_handler]
+pub async fn create(
+    ctx: Extension<ApiContext>,
+    Json(req): Json<NewUser>,
+) -> AppResult<Json<UserBody>> {
+
     let password_hash = hash_password(req.password).await?;
 
     let user_id = sqlx::query_scalar(
         r#"INSERT INTO "user"
         (email, username, password)
-        RETURNING id"#,
+        RETURNING id"#
     )
     .bind(&req.email)
     .bind(&req.username)
     .bind(&password_hash)
-    .fetch_one(pool)
+    .fetch_one(&ctx.db)
     .await?;
 
-    Ok(Json(User {
-        id: user_id,
-        email: req.email,
-        username: req.username,
-    }))
+    Ok(Json(UserBody {
+        user: User {
+            id: user_id,
+            email: req.email,
+            username: req.username
+    }}))
 }

@@ -6,7 +6,6 @@ use argon2::password_hash::SaltString;
 use argon2::{Argon2, PasswordHash};
 use anyhow::Context;
 use crate::routes::auth;
-use reqwest::Client;
 
 mod create;
 mod get;
@@ -18,6 +17,12 @@ use axum::{
     routing::{get, post, put, delete},
     middleware
 };
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserBody {
+    pub user: User,
+}
 
 #[derive(Serialize, Deserialize)]
 pub struct NewUser {
@@ -42,7 +47,9 @@ pub struct User {
     pub username: String
 }
 
-pub fn router() -> Router<Client> {
+use crate::AppState;
+
+pub fn router() -> Router<AppState> {
     Router::new()
         .route("/user", post(create::create))
         .route("/user/signin", post(auth::sign_in))

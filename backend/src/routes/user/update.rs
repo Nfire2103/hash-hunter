@@ -1,20 +1,16 @@
 <<<<<<< HEAD
 use axum::{Extension, Json,};
 use crate::error::AppResult;
-use sqlx::PgPool;
+use crate::routes::ApiContext;
 
-use super::{UpdateUser, User, hash_password};
+use super::{UpdateUser, UserBody, User, hash_password};
 
 
-pub async fn update(Extension(pool): Extension<PgPool>, Json(req): Json<UpdateUser>) -> AppResult<Json<User>> {
-    let challenge = update_user(&pool, req).await?;
-    Ok(challenge)
-}
-
-pub async fn update_user(
-    pool: &PgPool,
-    req: UpdateUser,
-) -> AppResult<Json<User>> {
+#[axum::debug_handler]
+pub async fn update(
+    ctx: Extension<ApiContext>,
+    Json(req): Json<UpdateUser>,
+) -> AppResult<Json<UserBody>> {
 
 =======
 use axum::{Extension, Json, extract::Path};
@@ -59,10 +55,10 @@ pub async fn update(
     .bind(&req.username)
     .bind(password_hash)
     .bind(&req.id)
-    .fetch_one(pool)
+    .fetch_one(&ctx.db)
     .await?;
 
-    Ok(Json(user))
+    Ok(Json(UserBody {user}))
 }
 
 =======

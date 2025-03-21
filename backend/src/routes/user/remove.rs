@@ -1,26 +1,21 @@
 <<<<<<< HEAD
 use axum::extract::{Extension, Path};
 use uuid::Uuid;
-use sqlx::PgPool;
 
 use crate::error::AppResult;
+use crate::routes::ApiContext;
 
-
-pub async fn remove(Extension(pool): Extension<PgPool>, Path(uuid): Path<Uuid>) -> AppResult<()> {
-    remove_user(&pool, &uuid).await?;
-    Ok(())
-}
-
-pub async fn remove_user(
-    pool: &PgPool,
-    uuid: &Uuid,
+#[axum::debug_handler]
+pub async fn remove(
+    ctx: Extension<ApiContext>,
+    Path(uuid): Path<Uuid>,
 ) -> AppResult<()> {
     sqlx::query(
         r#"DELETE FROM "user"
         WHERE id = $1"#
     )
     .bind(&uuid)
-    .execute(pool)
+    .execute(&ctx.db)
     .await?;
 =======
 use axum::{Extension, extract::Path};
