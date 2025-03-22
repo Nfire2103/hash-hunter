@@ -1,8 +1,10 @@
 use axum::{Extension, Json};
-use sqlx::PgPool;
 use uuid::Uuid;
-use crate::error::AppResult;
 use crate::blockchain::BlockchainType;
+use crate::{
+    AppState,
+    error::AppResult,
+};
 
 #[derive(serde::Serialize)]
 pub struct NewChallenge {
@@ -17,10 +19,12 @@ pub struct NewChallenge {
     pub blockchain: BlockchainType
 }
 
+use super::{Challenge, get::get_challenge};
+
 pub async fn create(
-    Extension(pool): Extension<PgPool>,
-    Json(req): Json<NewChallenge>
-) -> AppResult<Json<NewChallenge>> {
+    Extension(state): Extension<AppState>,
+    Json(req): Json<NewChallenge>,
+) -> AppResult<Json<Challenge>> {
 
     let id = sqlx::query_scalar::<_, Uuid>(
         "INSERT INTO challenge (author_id, title, description, code, bytecode, value, difficulty, blockchain)
@@ -35,18 +39,8 @@ pub async fn create(
     .bind(&req.value)
     .bind(&req.difficulty)
     .bind(&req.blockchain)
-    .fetch_one(&pool)
+    .fetch_one(&state.pool)
     .await?;
 
-    Ok(Json(NewChallenge {
-        id,
-        author_id: req.author_id,
-        title: req.title,
-        description: req.description,
-        code: req.code,
-        bytecode: req.bytecode,
-        value: req.value,
-        difficulty: req.difficulty,
-        blockchain: req.blockchain,
-    }))
+    Ok(Json(get_challenge(&state.pool, &id).await?))
 }
