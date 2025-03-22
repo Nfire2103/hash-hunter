@@ -11,7 +11,7 @@ use axum::{
 };
 use uuid::Uuid;
 
-use crate::middlewares::user::is_current_user;
+use crate::middlewares::user::check_is_curr_user;
 
 #[derive(serde::Serialize, sqlx::FromRow)]
 pub struct User {
@@ -32,7 +32,7 @@ pub fn router() -> Router {
         .route("/user/{uuid}", get(get::get))
         .route("/user/{uuid}", patch(update::update))
         .route("/user/{uuid}", delete(remove::remove))
-        .layer(middleware::from_fn(is_current_user))
+        .layer(middleware::from_fn(check_is_curr_user))
 }
 
 pub fn auth_router() -> Router {
