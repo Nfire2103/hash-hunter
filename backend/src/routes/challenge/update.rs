@@ -1,41 +1,48 @@
-use axum::{Extension, Json,};
-use crate::error::{AppResult, AppError};
-use sqlx::PgPool;
+use axum::{Extension, Json, extract::Path};
+use uuid::Uuid;
 
 use super::Challenge;
+use crate::{
+    AppState,
+    error::{AppError, AppResult},
+};
 
-pub async fn update(Extension(pool): Extension<PgPool>, Json(req): Json<Challenge>) -> AppResult<Json<Challenge>> {
-    let challenge = update_challenge(&pool, req).await?;
-    Ok(challenge)
+#[derive(serde::Deserialize)]
+pub struct UpdateChallenge {
+    title: Option<String>,
+    description: Option<String>,
+    code: Option<String>,
+    bytecode: Option<String>,
+    value: Option<String>,
+    difficulty: Option<i16>,
 }
 
-pub async fn update_challenge(
-    pool: &PgPool,
-    req: Challenge,
+// TODO if bytecode is updated, check that the code is valid
+pub async fn update(
+    Extension(app_state): Extension<AppState>,
+    Path(uuid): Path<Uuid>,
+    Json(req): Json<UpdateChallenge>,
 ) -> AppResult<Json<Challenge>> {
     let challenge = sqlx::query_as::<_, Challenge>(
         "UPDATE challenge
-        SET author_id = COALESCE($1, challenge.author_id),
-            title = COALESCE($2, challenge.title),
-            description = COALESCE($3, challenge.description),
-            code = COALESCE($4, challenge.code),
-            bytecode = COALESCE($5, challenge.bytecode),
-            value = COALESCE($6, challenge.value),
-            difficulty = COALESCE($7, challenge.difficulty)
-            blockchain = COALESCE($8, challenge.blockchain)
-        WHERE id = $9
-        RETURNING id, author_id, title, description, code, bytecode, difficulty, solved, created_at, updated_at"
+        SET title = COALESCE($1, challenge.title),
+            description = COALESCE($2, challenge.description),
+            code = COALESCE($3, challenge.code),
+            bytecode = COALESCE($4, challenge.bytecode),
+            value = COALESCE($5, challenge.value),
+            difficulty = COALESCE($6, challenge.difficulty)
+        WHERE id = $7
+        RETURNING id, author_id, title, description, code, bytecode, value, difficulty, solved,
+            blockchain, created_at, updated_at",
     )
-    .bind(&req.author_id)
     .bind(&req.title)
     .bind(&req.description)
     .bind(&req.code)
     .bind(&req.bytecode)
     .bind(&req.value)
     .bind(&req.difficulty)
-    .bind(&req.blockchain)
-    .bind(&req.id)
-    .fetch_optional(pool)
+    .bind(&uuid)
+    .fetch_optional(&app_state.pool)
     .await?
     .ok_or(AppError::NotFound)?;
 
