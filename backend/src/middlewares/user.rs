@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 use crate::error::{AppError, AppResult};
 
-pub async fn check_is_curr_user(
+pub async fn is_current_user(
     Extension(user_id): Extension<Uuid>,
     Path(uuid): Path<Uuid>,
     req: Request<Body>,

@@ -4,14 +4,14 @@ mod remove;
 mod update;
 
 use axum::{
-    Router, middleware,
-    routing::{delete, get, patch, post},
+    Router,
+    routing::{delete, get, post, put},
 };
 use chrono::NaiveDateTime;
 pub use get::get_challenge;
 use uuid::Uuid;
 
-use crate::{blockchain::BlockchainType, middlewares::challenge::check_curr_user_is_owner};
+use crate::blockchain::BlockchainType;
 
 #[derive(serde::Serialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
@@ -32,9 +32,8 @@ pub struct Challenge {
 
 pub fn router() -> Router {
     Router::new()
-        .route("/challenge/{uuid}", get(get::get))
-        .route("/challenge/{uuid}", patch(update::update))
-        .route("/challenge/{uuid}", delete(remove::remove))
-        .layer(middleware::from_fn(check_curr_user_is_owner))
         .route("/challenge", post(create::create))
+        .route("/challenge/{uuid}", get(get::get))
+        .route("/challenge/{uuid}", put(update::update))
+        .route("/challenge/{uuid}", delete(remove::remove))
 }
