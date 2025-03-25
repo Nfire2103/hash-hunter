@@ -8,6 +8,8 @@ CREATE TABLE challenge (
     code TEXT NOT NULL,
     bytecode TEXT NOT NULL,
     value TEXT NOT NULL,
+    exploit_bytecode TEXT NOT NULL,
+    exploit_value TEXT NOT NULL,
     difficulty SMALLINT NOT NULL,
     solved INTEGER NOT NULL DEFAULT 0,
     blockchain blockchain_type NOT NULL,

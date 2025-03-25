@@ -11,7 +11,7 @@ use chrono::NaiveDateTime;
 pub use get::get_challenge;
 use uuid::Uuid;
 
-use crate::{blockchain::BlockchainType, middlewares::challenge::check_curr_user_is_owner};
+use crate::{NodeState, blockchain::BlockchainType, middlewares::challenge::check_curr_user_is_owner};
 
 #[derive(serde::Serialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
@@ -23,6 +23,8 @@ pub struct Challenge {
     pub code: String,
     pub bytecode: String,
     pub value: String,
+    pub exploit_bytecode: String,
+    pub exploit_value: String,
     pub difficulty: i16,
     pub solved: i32,
     pub blockchain: BlockchainType,
@@ -30,7 +32,7 @@ pub struct Challenge {
     pub updated_at: NaiveDateTime,
 }
 
-pub fn router() -> Router {
+pub fn router() -> Router<NodeState> {
     Router::new()
         .route("/challenge/{uuid}", get(get::get))
         .route("/challenge/{uuid}", patch(update::update))

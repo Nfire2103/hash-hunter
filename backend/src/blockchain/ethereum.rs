@@ -2,13 +2,14 @@ use std::str::FromStr;
 
 use alloy::{
     hex,
-    network::TransactionBuilder,
+    network::{EthereumWallet, TransactionBuilder},
     primitives::{Address, TxHash, U256},
     providers::{
         DynProvider, Provider, ProviderBuilder,
         ext::{AnvilApi, DebugApi},
     },
     rpc::types::{TransactionReceipt, TransactionRequest, trace::geth::GethDebugTracingOptions},
+    signers::local::PrivateKeySigner,
     sol,
     sol_types::SolValue,
 };
@@ -29,8 +30,13 @@ sol! {
 
         function validateInstances(
             address _player,
-            address[] memory _instances
+            address[] calldata _instances
         ) external returns (bool);
+    }
+
+    #[sol(rpc)]
+    interface Exploit {
+        function exploitInstances(address[] calldata _instances) external payable;
     }
 }
 
@@ -72,9 +78,11 @@ impl BlockchainProvider for EthereumProvider {
         Ok(level_addr.to_string())
     }
 
-    async fn create_instances(&self, level: &str, player: &str, value: &str) -> Result<Vec<String>> {
-        let level_addr = Address::from_str(level)?;
+    async fn create_instances(&self, level: &str, value: &str) -> Result<Vec<String>> {
+        let (player, _) = self.player_wallet();
+
         let player_addr = Address::from_str(player)?;
+        let level_addr = Address::from_str(level)?;
         let value_u256 = U256::from_str(value)?;
 
         let level = Level::new(level_addr, &self.provider);
@@ -87,9 +95,9 @@ impl BlockchainProvider for EthereumProvider {
             .createInstances(player_addr)
             .into_transaction_request()
             .with_from(Address::default())
+            .with_value(value_u256)
             .with_max_fee_per_gas(0)
-            .with_max_priority_fee_per_gas(0)
-            .with_value(value_u256);
+            .with_max_priority_fee_per_gas(0);
 
         let tx_hash = self.provider.eth_send_unsigned_transaction(tx).await?;
         let _ = get_transaction_receipt_with_retry(&self.provider, tx_hash, 50).await?;
@@ -107,9 +115,11 @@ impl BlockchainProvider for EthereumProvider {
         Ok(instances)
     }
 
-    async fn validate_instances(&self, level: &str, player: &str, instances: &[String]) -> Result<bool> {
-        let level_addr = Address::from_str(level)?;
+    async fn validate_instances(&self, level: &str, instances: &[String]) -> Result<bool> {
+        let (player, _) = self.player_wallet();
+
         let player_addr = Address::from_str(player)?;
+        let level_addr = Address::from_str(level)?;
         let instances_addr = instances
             .iter()
             .map(|instance| Address::from_str(instance))
@@ -124,6 +134,64 @@ impl BlockchainProvider for EthereumProvider {
             ._0;
 
         Ok(validate)
+    }
+
+    async fn exploit_instances(&self, instances: &[String], bytecode: &str, value: &str) -> Result<()> {
+        let (player, privatekey) = self.player_wallet();
+
+        let player_addr = Address::from_str(player)?;
+        let value_u256 = U256::from_str(value)?;
+        let instances_addr = instances
+            .iter()
+            .map(|instance| Address::from_str(instance))
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let private_signer = PrivateKeySigner::from_str(privatekey)?;
+        let wallet = EthereumWallet::from(private_signer);
+
+        let nonce = self.provider.get_transaction_count(player_addr).await?;
+        let chain_id = self.provider.get_chain_id().await?;
+
+        let tx = TransactionRequest::default()
+            .with_from(player_addr)
+            .with_deploy_code(hex::decode(bytecode)?)
+            .with_nonce(nonce)
+            .with_gas_limit(21_000_000)
+            .with_chain_id(chain_id)
+            .with_max_fee_per_gas(0)
+            .with_max_priority_fee_per_gas(0);
+
+        let tx_envelope = tx.build(&wallet).await?;
+
+        let tx_receipt = self
+            .provider
+            .send_tx_envelope(tx_envelope)
+            .await?
+            .get_receipt()
+            .await?;
+
+        let exploit_addr = tx_receipt
+            .contract_address
+            .context("Failed to get exploit address")?;
+
+        let exploit = Exploit::new(exploit_addr, &self.provider);
+
+        let tx = exploit
+            .exploitInstances(instances_addr)
+            .into_transaction_request()
+            .with_from(player_addr)
+            .with_value(value_u256)
+            .with_nonce(nonce + 1)
+            .with_gas_limit(21_000_000)
+            .with_chain_id(chain_id)
+            .with_max_fee_per_gas(0)
+            .with_max_priority_fee_per_gas(0);
+
+        let tx_envelope = tx.build(&wallet).await?;
+
+        self.provider.send_tx_envelope(tx_envelope).await?.watch().await?;
+
+        Ok(())
     }
 }
 

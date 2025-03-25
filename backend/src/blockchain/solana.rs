@@ -24,16 +24,20 @@ impl BlockchainProvider for SolanaProvider {
         unimplemented!("Solana create level not implemented");
     }
 
-    async fn create_instances(&self, _level: &str, _player: &str, _value: &str) -> Result<Vec<String>> {
+    async fn create_instances(&self, _level: &str, _value: &str) -> Result<Vec<String>> {
         unimplemented!("Solana create instances not implemented");
     }
 
-    async fn validate_instances(
-        &self,
-        _level: &str,
-        _player: &str,
-        _instances: &[String],
-    ) -> Result<bool> {
+    async fn validate_instances(&self, _level: &str, _instances: &[String]) -> Result<bool> {
         unimplemented!("Solana validate instances not implemented");
+    }
+
+    async fn exploit_instances(
+        &self,
+        _instances: &[String],
+        _bytecode: &str,
+        _value: &str,
+    ) -> Result<()> {
+        unimplemented!("Solana exploit instances not implemented");
     }
 }

@@ -101,7 +101,7 @@ fn fill_manifests(
     Ok((deployment, service))
 }
 
-async fn deploy_node(state: &NodeState, node_type: &NodeType, node_id: &Uuid) -> Result<String> {
+pub async fn deploy_node(state: &NodeState, node_type: &NodeType, node_id: &Uuid) -> Result<String> {
     let (deployment, service) = fill_manifests(state, node_type, node_id)?;
 
     let deployments: Api<Deployment> = Api::default_namespaced(state.kube_client.clone());
@@ -172,9 +172,7 @@ pub async fn deploy_instances(
 
     let (pubkey, privatekey) = provider.player_wallet();
     let level = provider.create_level(&challenge.bytecode).await?;
-    let instances = provider
-        .create_instances(&level, pubkey, &challenge.value)
-        .await?;
+    let instances = provider.create_instances(&level, &challenge.value).await?;
 
     sqlx::query("UPDATE node SET level = $1, instances = $2 WHERE id = $3")
         .bind(&level)

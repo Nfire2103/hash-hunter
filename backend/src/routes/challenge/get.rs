@@ -18,8 +18,9 @@ pub async fn get(
 
 pub async fn get_challenge(pool: &PgPool, uuid: &Uuid) -> AppResult<Challenge> {
     let challenge = sqlx::query_as::<_, Challenge>(
-        "SELECT id, author_id, title, description, code, bytecode, value, difficulty,
-        solved, blockchain, created_at, updated_at FROM challenge WHERE id = $1",
+        "SELECT id, author_id, title, description, code, bytecode, value, exploit_bytecode,
+            exploit_value, difficulty, solved, blockchain, created_at, updated_at
+        FROM challenge WHERE id = $1",
     )
     .bind(uuid)
     .fetch_optional(pool)

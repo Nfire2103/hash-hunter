@@ -23,6 +23,12 @@ pub enum AppError {
     #[error("This {0} is already taken")]
     Conflict(String),
 
+    #[error("This challenge can not be deployed")]
+    CannotBeDeployed,
+
+    #[error("This challenge can not be solved")]
+    CannotBeSolved,
+
     #[error(transparent)]
     RpcMethodDoesNotExist(#[from] RpcMethodDoesNotExistError),
 
@@ -58,6 +64,11 @@ impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         match self {
             Self::RpcMethodDoesNotExist(err) => (StatusCode::OK, err.to_string()).into_response(),
+            Self::CannotBeDeployed | Self::CannotBeSolved => (
+                StatusCode::BAD_REQUEST,
+                Json(ErrorResponse::new("Bad request", self.to_string())),
+            )
+                .into_response(),
             Self::Unauthorized => (
                 StatusCode::UNAUTHORIZED,
                 Json(ErrorResponse::new("Unauthorized", self.to_string())),

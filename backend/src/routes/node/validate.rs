@@ -26,10 +26,7 @@ pub async fn validate(
     let blockchain = BlockchainType::from(&node.node_type);
     let provider = blockchain.provider(node_url);
 
-    let (pubkey, _) = provider.player_wallet();
-    let validated = provider
-        .validate_instances(&node.level, pubkey, &node.instances)
-        .await?;
+    let validated = provider.validate_instances(&node.level, &node.instances).await?;
 
     if validated {
         remove_node(&app_state.pool, &state, &node.node_type, &uuid).await?;

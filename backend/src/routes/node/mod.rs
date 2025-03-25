@@ -1,5 +1,5 @@
 mod args;
-mod create;
+pub mod create;
 mod get;
 mod remove;
 mod reset;
@@ -12,6 +12,7 @@ use axum::{
     routing::{delete, get, post},
 };
 use chrono::NaiveDateTime;
+pub use remove::remove_node;
 pub use state::NodeState;
 use uuid::Uuid;
 

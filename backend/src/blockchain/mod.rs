@@ -11,7 +11,7 @@ use solana::SolanaProvider;
 
 use crate::error::AppResult;
 
-#[derive(serde::Serialize, sqlx::Type, strum::Display)]
+#[derive(Clone, serde::Serialize, sqlx::Type, strum::Display)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 #[sqlx(type_name = "node_type", rename_all = "lowercase")]
@@ -47,7 +47,7 @@ impl From<&BlockchainType> for NodeType {
     }
 }
 
-#[derive(serde::Deserialize, serde::Serialize, sqlx::Type)]
+#[derive(Clone, serde::Deserialize, serde::Serialize, sqlx::Type)]
 #[serde(rename_all = "lowercase")]
 #[sqlx(type_name = "blockchain_type", rename_all = "lowercase")]
 pub enum BlockchainType {
@@ -68,6 +68,7 @@ impl BlockchainType {
 pub trait BlockchainProvider: Send + Sync {
     fn player_wallet(&self) -> (&'static str, &'static str);
     async fn create_level(&self, bytecode: &str) -> Result<String>;
-    async fn create_instances(&self, level: &str, player: &str, value: &str) -> Result<Vec<String>>;
-    async fn validate_instances(&self, level: &str, player: &str, instances: &[String]) -> Result<bool>;
+    async fn create_instances(&self, level: &str, value: &str) -> Result<Vec<String>>;
+    async fn validate_instances(&self, level: &str, instances: &[String]) -> Result<bool>;
+    async fn exploit_instances(&self, instances: &[String], bytecode: &str, value: &str) -> Result<()>;
 }
