@@ -9,22 +9,23 @@ use uuid::Uuid;
 
 use super::NodeState;
 use crate::{
+    AppState,
     blockchain::NodeType,
     error::{AppError, AppResult},
 };
 
 pub async fn remove(
-    Extension(pool): Extension<PgPool>,
+    Extension(app_state): Extension<AppState>,
     State(state): State<NodeState>,
     Path(uuid): Path<Uuid>,
 ) -> AppResult<()> {
     let node_type = sqlx::query_scalar::<_, NodeType>("SELECT type FROM node WHERE id = $1")
         .bind(&uuid)
-        .fetch_optional(&pool)
+        .fetch_optional(&app_state.pool)
         .await?
         .ok_or(AppError::NotFound)?;
 
-    remove_node(&pool, &state, &node_type, &uuid).await?;
+    remove_node(&app_state.pool, &state, &node_type, &uuid).await?;
 
     Ok(())
 }

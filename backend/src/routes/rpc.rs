@@ -4,17 +4,16 @@ use axum::{
     extract::{Path, State},
     routing::post,
 };
-use reqwest::Client;
 use serde_json::Value;
-use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::{
+    AppState,
     blockchain::{NodeType, rpc::RpcRequest},
     error::{AppError, AppResult},
 };
 
-pub fn router() -> Router<Client> {
+pub fn router() -> Router<reqwest::Client> {
     Router::new().route("/rpc/{uuid}", post(call))
 }
 
@@ -22,8 +21,8 @@ pub fn router() -> Router<Client> {
 // TODO take a look at wallet_sendTransaction & odyssey_sendTransaction methods
 // TODO take a look at eth_sendTransaction method
 async fn call(
-    Extension(pool): Extension<PgPool>,
-    State(client): State<Client>,
+    Extension(app_state): Extension<AppState>,
+    State(http_client): State<reqwest::Client>,
     Path(uuid): Path<Uuid>,
     Json(req): Json<RpcRequest>,
 ) -> AppResult<Json<Value>> {
@@ -32,13 +31,13 @@ async fn call(
         RETURNING type",
     )
     .bind(&uuid)
-    .fetch_optional(&pool)
+    .fetch_optional(&app_state.pool)
     .await?
     .ok_or(AppError::NotFound)?;
 
     node_type.filter_methods(&req)?;
 
-    let response = client
+    let response = http_client
         .post(format!("http://{}-{}", node_type, uuid))
         .json(&req)
         .send()

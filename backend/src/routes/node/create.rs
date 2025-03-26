@@ -72,7 +72,7 @@ pub async fn create_node(
 ) -> AppResult<Uuid> {
     let node_id = sqlx::query_scalar::<_, Uuid>(
         "INSERT INTO node (user_id, challenge_id, type)
-            VALUES ($1, $2, $3) RETURNING id",
+        VALUES ($1, $2, $3) RETURNING id",
     )
     .bind(user_id)
     .bind(challenge_id)
@@ -128,8 +128,7 @@ pub async fn wait_pod_running(
     let running = await_condition(pods, &pod_name, is_pod_running());
     timeout(Duration::from_secs(30), running).await??;
 
-    // TODO find a better way
-    sleep(Duration::from_millis(100)).await;
+    await_service_up(&state.http_client, node_name, 50).await?;
 
     sqlx::query("UPDATE node SET pod_name = $1, pod_uid = $2 WHERE id = $3")
         .bind(pod_name)
@@ -157,7 +156,19 @@ async fn get_pod_with_retry(pods: &Api<Pod>, node_name: &str, max_retry: u32) ->
         sleep(Duration::from_millis(100)).await;
     }
 
-    bail!("Failed to deploy instance");
+    bail!("Failed to get pod");
+}
+
+async fn await_service_up(client: &reqwest::Client, node_name: &str, max_retry: u32) -> Result<()> {
+    for _ in 0..max_retry {
+        if let Ok(_) = client.get(format!("http://{node_name}")).send().await {
+            return Ok(());
+        }
+
+        sleep(Duration::from_millis(100)).await;
+    }
+
+    bail!("Failed to await service up");
 }
 
 pub async fn deploy_instances(

@@ -4,7 +4,6 @@ use argon2::{
     password_hash::{SaltString, rand_core::OsRng},
 };
 use axum::{Extension, Json};
-use uuid::Uuid;
 
 use super::{User, UserWithToken, token::create_token};
 use crate::{
@@ -25,9 +24,9 @@ pub async fn register(
 ) -> AppResult<Json<UserWithToken>> {
     let password_hash = hash_password(req.password).await?;
 
-    let user_id = sqlx::query_scalar::<_, Uuid>(
+    let user = sqlx::query_as::<_, User>(
         r#"INSERT INTO "user" (email, username, password)
-        VALUES ($1, $2, $3) RETURNING id"#,
+        VALUES ($1, $2, $3) RETURNING id, email, username"#,
     )
     .bind(&req.email)
     .bind(&req.username)
@@ -38,12 +37,8 @@ pub async fn register(
     .on_constraint_conflict("user_email_key")?;
 
     Ok(Json(UserWithToken {
-        token: create_token(user_id, &state.jwt_secret)?,
-        user: User {
-            id: user_id,
-            email: req.email,
-            username: req.username,
-        },
+        token: create_token(user.id, &state.jwt_secret)?,
+        user,
     }))
 }
 

@@ -26,14 +26,12 @@ pub async fn update(
     };
 
     let user = sqlx::query_as::<_, User>(
-        r#"
-            UPDATE "user"
-            SET email = COALESCE($1, "user".email),
-                username = COALESCE($2, "user".username),
-                password = COALESCE($3, "user".password)
-            WHERE id = $4
-            RETURNING id, email, username
-        "#,
+        r#"UPDATE "user"
+        SET email = COALESCE($1, "user".email),
+            username = COALESCE($2, "user".username),
+            password = COALESCE($3, "user".password)
+        WHERE id = $4
+        RETURNING id, email, username"#,
     )
     .bind(&req.email)
     .bind(&req.username)
