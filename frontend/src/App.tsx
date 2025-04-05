@@ -3,7 +3,7 @@ import './App.css';
 
 import { Layout } from '@/components/Layout';
 import { Challenge } from '@/pages/Challenge';
-import Home from '@/pages/Home';
+import { Home } from '@/pages/Home';
 import { ListChallenges } from '@/pages/ListChallenges';
 
 function App() {

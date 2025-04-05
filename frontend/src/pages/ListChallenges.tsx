@@ -1,4 +1,5 @@
 import { ChevronDown } from 'lucide-react';
+import solanaLogo from '../assets/solana.png';
 
 import { ChallengeCard } from '@/components/ChallengeCard';
 import { GradientButton } from '@/components/GradientButton';
@@ -14,8 +15,8 @@ export const ListChallenges = () => {
         </h1>
       </div>
 
-      <div className="flex space-x-4">
-        <Input placeholder="Search course" className="rounded-none w-[24rem]" />
+      <div className="w-[80%] flex space-x-4">
+        <Input placeholder="Search course" className="rounded-none" />
 
         <GradientButton>
           <div className="flex items-center space-x-2 group-hover:text-accent transition-colors">
@@ -40,10 +41,10 @@ export const ListChallenges = () => {
       </div>
 
       <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        <ChallengeCard />
-        <ChallengeCard />
-        <ChallengeCard />
-        <ChallengeCard />
+        <ChallengeCard image={solanaLogo} rating={4} />
+        <ChallengeCard image={solanaLogo} rating={4} />
+        <ChallengeCard image={solanaLogo} rating={4} />
+        <ChallengeCard image={solanaLogo} rating={4} />
       </div>
     </div>
   );
