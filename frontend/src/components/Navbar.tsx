@@ -35,14 +35,15 @@ export const Navbar = () => {
             <Link to="/login" className="hover:text-accent transition-colors">
               Login
             </Link>
-            <Link to="/register">
-              <GradientButton>
-                <div className="flex items-center space-x-2 group-hover:text-accent transition-colors">
-                  <span>Register</span>
-                  <ChevronRight />
-                </div>
-              </GradientButton>
-            </Link>
+            <GradientButton>
+              <Link
+                to="/register"
+                className="flex items-center space-x-2 group-hover:text-accent transition-colors"
+              >
+                <span>Register</span>
+                <ChevronRight />
+              </Link>
+            </GradientButton>
           </div>
         </div>
       </div>

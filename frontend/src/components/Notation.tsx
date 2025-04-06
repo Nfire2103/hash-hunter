@@ -1,5 +1,6 @@
 export const Notation = ({ rating }: { rating: number }) => {
-  const stars = Array.from({ length: 5 }, (_, index) => index + 1);
+  const stars = [1, 2, 3, 4, 5];
+  const ratingValue = Math.round(rating);
 
   return (
     <div className="flex items-center ml-[-2px]">
@@ -7,7 +8,7 @@ export const Notation = ({ rating }: { rating: number }) => {
         <svg
           key={star}
           xmlns="http://www.w3.org/2000/svg"
-          fill={star <= rating ? 'currentColor' : 'none'}
+          fill={star <= ratingValue ? 'currentColor' : 'none'}
           viewBox="0 0 32 32"
           strokeWidth={2}
           stroke="currentColor"
