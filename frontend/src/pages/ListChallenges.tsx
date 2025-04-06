@@ -8,8 +8,8 @@ import { Input } from '@/components/ui/input';
 
 export const ListChallenges = () => {
   return (
-    <div className="flex flex-col items-center space-y-12">
-      <div className="flex flex-col items-center space-y-4 pt-16">
+    <div className="flex flex-col items-center space-y-12 pt-16">
+      <div className="flex flex-col items-center space-y-4">
         <h1 className="text-8xl">Pick your course.</h1>
         <h1 className="text-8xl">
           <span className="text-accent">{'{Solve}'}</span> it!
@@ -50,7 +50,7 @@ export const ListChallenges = () => {
         />
         <ChallengeCard
           image={solanaLogo}
-          title="Deploying and Interacting with Solana Programs via CLI"
+          title="Create a SPL Token on Solana"
           description="Solana"
           rating={3.9}
         />
