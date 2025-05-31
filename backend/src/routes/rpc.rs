@@ -30,7 +30,7 @@ async fn call(
         "UPDATE node SET last_activity = NOW() WHERE id = $1
         RETURNING type",
     )
-    .bind(&uuid)
+    .bind(uuid)
     .fetch_optional(&app_state.pool)
     .await?
     .ok_or(AppError::NotFound)?;

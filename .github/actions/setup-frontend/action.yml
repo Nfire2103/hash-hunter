@@ -1,0 +1,18 @@
+name: Setup Frontend
+description: Common steps to prepare the frontend environment
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "22"
+
+    - name: Install pnpm
+      run: npm install -g pnpm
+      shell: bash
+
+    - name: Install frontend dependencies
+      working-directory: ./frontend
+      run: pnpm install --frozen-lockfile
+      shell: bash

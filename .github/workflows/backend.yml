@@ -1,0 +1,47 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: rust:latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build project
+        working-directory: ./backend
+        run: cargo build --release --locked --all-targets
+
+  lint:
+    runs-on: ubuntu-latest
+    container: rust:latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install clippy
+        run: rustup component add clippy
+
+      - name: Run clippy
+        working-directory: ./backend
+        run: cargo clippy --locked --all-targets -- -D warnings
+
+  format:
+    runs-on: ubuntu-latest
+    container: rustlang/rust:nightly
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install rustfmt
+        run: rustup +nightly component add rustfmt
+
+      - name: Check code formatting
+        working-directory: ./backend
+        run: cargo +nightly fmt -- --check
