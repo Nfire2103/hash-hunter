@@ -39,64 +39,85 @@ The project is a monorepo containing:
 #### `build-frontend`
 
 * Builds the frontend app in CI
-* Uses Node.js 18 + pnpm 10
+* Uses Node.js 22 + pnpm 10
 
 #### `build-backend-docker`
 
-* Builds the Rust backend as a Docker image using multi-stage builds
-* Uses `cargo-chef` for efficient caching
+* Builds the Rust backend in CI
 
-#### Sample Workflow: `.github/workflows/ci.yml`
+#### Sample Workflow: `.github/workflows/backend.yml`
 
 ```yaml
-name: CI Build and Docker
+name: Backend CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
 
 jobs:
-  build-frontend:
-    name: 🛠️ Build Frontend
+  build:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-env
-      - run: |
-          cd frontend
-          pnpm install
-          pnpm build
+    container: rust:latest
 
-  build-backend-docker:
-    name: 🐳 Build Backend Docker Image
-    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: docker/setup-buildx-action@v3
-      - run: |
-          docker build -f backend/Dockerfile -t my-backend:latest .
+      - uses: actions/checkout@v4
+
+      - name: Build project
+        working-directory: ./backend
+        run: cargo build --release --locked --all-targets
+
+  lint:
+    runs-on: ubuntu-latest
+    container: rust:latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install clippy
+        run: rustup component add clippy
+
+      - name: Run clippy
+        working-directory: ./backend
+        run: cargo clippy --locked --all-targets -- -D warnings
+
+  format:
+    runs-on: ubuntu-latest
+    container: rustlang/rust:nightly
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install rustfmt
+        run: rustup +nightly component add rustfmt
+
+      - name: Check code formatting
+        working-directory: ./backend
+        run: cargo +nightly fmt -- --check
 ```
-
 ---
 
-## 💪 Local Development
-
-### 💻 Option 1: Run Locally (Without Docker)
+## 💻 Run Locally
 
 #### Prerequisites
 
 * Rust (`rustup`)
 * Node.js + pnpm (`corepack enable && corepack prepare pnpm@latest`)
-* Postgres running locally (or via Docker)
+* Setup env variables
 
 #### ✅ Run Backend
 
+* Setup cube
+
 ```bash
 cd backend
-export DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres
-cargo run --bin backend
+./setup.sh
+```
+* Start the backend
+
+```bash
+cargo run
 ```
 
 #### ✅ Run Frontend
@@ -109,59 +130,3 @@ pnpm dev
 
 ---
 
-### 🐳 Option 2: Run With Docker
-
-#### 🐘 Run Postgres with Docker
-
-```bash
-docker run --name local-postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -p 5432:5432 \
-  -d postgres
-```
-
-#### ⚖️ Build Backend Docker Image
-
-```bash
-docker build -f backend/Dockerfile -t my-backend:local .
-```
-
-#### ▶️ Run Backend in Docker
-
-```bash
-docker run -p 8080:8080 \
-  -e DATABASE_URL=postgres://postgres:postgres@host.docker.internal:5432/postgres \
-  my-backend:local
-```
-
-#### 🌐 Run Frontend Locally
-
-Still run the frontend locally for fastest iteration:
-
-```bash
-cd frontend
-pnpm dev
-```
-
-Make sure API calls point to `http://localhost:8080`.
-
----
-
-## 🧱 Optional: dockerfile.anvil
-
-To build and run the `anvil` test chain locally:
-
-```bash
-docker build -f dockerfile.anvil -t anvil:local .
-docker run -p 8545:8545 anvil:local
-```
-
----
-
-## 📌 Notes
-
-* The `pnpm-lock.yaml` is located in `frontend/`. All `pnpm` commands must be run from there.
-* `cargo` builds require `DATABASE_URL` to be set correctly, even for local usage.
-* `host.docker.internal` allows Docker containers to access the host machine DB (use `localhost` if not inside Docker).
-
----
