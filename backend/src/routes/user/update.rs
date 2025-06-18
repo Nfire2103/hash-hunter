@@ -36,7 +36,7 @@ pub async fn update(
     .bind(&req.email)
     .bind(&req.username)
     .bind(&password_hash)
-    .bind(&uuid)
+    .bind(uuid)
     .fetch_optional(&app_state.pool)
     .await
     .on_constraint_conflict("user_username_key")

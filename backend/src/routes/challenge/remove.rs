@@ -8,7 +8,7 @@ use crate::{
 
 pub async fn remove(Extension(app_state): Extension<AppState>, Path(uuid): Path<Uuid>) -> AppResult<()> {
     let result = sqlx::query("DELETE FROM challenge WHERE id = $1")
-        .bind(&uuid)
+        .bind(uuid)
         .execute(&app_state.pool)
         .await?;
 

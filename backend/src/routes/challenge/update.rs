@@ -65,8 +65,8 @@ pub async fn update(
     .bind(&req.value)
     .bind(&req.exploit_bytecode)
     .bind(&req.exploit_value)
-    .bind(&req.difficulty)
-    .bind(&uuid)
+    .bind(req.difficulty)
+    .bind(uuid)
     .fetch_optional(&app_state.pool)
     .await?
     .ok_or(AppError::NotFound)?;

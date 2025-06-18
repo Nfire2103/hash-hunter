@@ -161,7 +161,7 @@ async fn get_pod_with_retry(pods: &Api<Pod>, node_name: &str, max_retry: u32) ->
 
 async fn await_service_up(client: &reqwest::Client, node_name: &str, max_retry: u32) -> Result<()> {
     for _ in 0..max_retry {
-        if let Ok(_) = client.get(format!("http://{node_name}")).send().await {
+        if client.get(format!("http://{node_name}")).send().await.is_ok() {
             return Ok(());
         }
 

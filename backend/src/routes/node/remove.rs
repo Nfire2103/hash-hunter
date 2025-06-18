@@ -20,7 +20,7 @@ pub async fn remove(
     Path(uuid): Path<Uuid>,
 ) -> AppResult<()> {
     let node_type = sqlx::query_scalar::<_, NodeType>("SELECT type FROM node WHERE id = $1")
-        .bind(&uuid)
+        .bind(uuid)
         .fetch_optional(&app_state.pool)
         .await?
         .ok_or(AppError::NotFound)?;

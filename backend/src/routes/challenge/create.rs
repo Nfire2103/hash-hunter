@@ -52,7 +52,7 @@ pub async fn create(
         RETURNING id, author_id, title, description, code, bytecode, value, exploit_bytecode,
             exploit_value, difficulty, solved, blockchain, created_at, updated_at",
     )
-    .bind(&user_id)
+    .bind(user_id)
     .bind(&req.title)
     .bind(&req.description)
     .bind(&req.code)
@@ -60,7 +60,7 @@ pub async fn create(
     .bind(&req.value)
     .bind(&req.exploit_bytecode)
     .bind(&req.exploit_value)
-    .bind(&req.difficulty)
+    .bind(req.difficulty)
     .bind(&req.blockchain)
     .fetch_one(&app_state.pool)
     .await?;
