@@ -16,3 +16,8 @@ runs:
       working-directory: ./frontend
       run: pnpm install --frozen-lockfile
       shell: bash
+
+    - name: Install Playwright Browsers
+      working-directory: ./frontend
+      run: pnpm exec playwright install --with-deps
+      shell: bash
