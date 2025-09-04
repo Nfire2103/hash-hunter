@@ -1,7 +1,7 @@
 use anyhow::Result;
 use sqlx::{PgPool, postgres::PgPoolOptions};
 
-use crate::config::AppConfig;
+use crate::Config;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -10,12 +10,12 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn try_from_config(config: &AppConfig) -> Result<Self> {
+    pub fn try_from_args(args: &Config) -> Result<Self> {
         Ok(Self {
             pool: PgPoolOptions::new()
-                .max_connections(config.database.database_max_connections)
-                .connect_lazy(&config.database.database_url)?,
-            jwt_secret: config.jwt_secret.clone(),
+                .max_connections(args.database.database_max_connections)
+                .connect_lazy(&args.database.database_url)?,
+            jwt_secret: args.jwt_secret.clone(),
         })
     }
 }

@@ -1,16 +1,16 @@
-use clap::ValueHint;
+use clap::{Args, ValueHint};
 
-#[derive(clap::Args)]
+#[derive(Debug, Args)]
 pub struct NodeArgs {
     #[arg(long, env, value_hint = ValueHint::FilePath)]
     pub kubeconfig: String,
 
-    #[clap(long, env, value_hint = ValueHint::FilePath)]
+    #[arg(long, env, value_hint = ValueHint::FilePath)]
     pub templates: String,
 
-    #[clap(long, env, value_hint = ValueHint::FilePath)]
+    #[arg(long, env, value_hint = ValueHint::FilePath)]
     pub deployment_file: String,
 
-    #[clap(long, env, value_hint = ValueHint::FilePath)]
+    #[arg(long, env, value_hint = ValueHint::FilePath)]
     pub service_file: String,
 }

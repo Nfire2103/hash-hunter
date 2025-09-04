@@ -18,27 +18,28 @@ use super::{
 };
 use crate::{AppState, error::AppResult, routes::challenge::get_challenge};
 
+// TODO maybe remove this endpoint
 pub async fn reset(
     Extension(app_state): Extension<AppState>,
     State(state): State<NodeState>,
     Path(uuid): Path<Uuid>,
 ) -> AppResult<Json<NodeCreateResponse>> {
-    let node = get_node(&app_state.pool, &uuid).await?;
-    let challenge = get_challenge(&app_state.pool, &node.challenge_id).await?;
+    let node = get_node(&app_state.pool, uuid).await?;
+    let challenge = get_challenge(&app_state.pool, node.challenge_id).await?;
 
-    let node_name = format!("{}-{}", node.node_type, uuid);
+    let node_name = format!("{}-{uuid}", node.r#type);
     let deployments: Api<Deployment> = Api::default_namespaced(state.kube_client.clone());
 
     deployments.restart(&node_name).await?;
     wait_pod_deleted(&state, &node.pod_name, &node.pod_uid).await?;
-    wait_pod_running(&app_state.pool, &state, &uuid, &node_name).await?;
+    wait_pod_running(&app_state.pool, &state, &node_name, uuid).await?;
 
     let ((pubkey, privatekey), instances) =
-        deploy_instances(&app_state.pool, &uuid, &node_name, &challenge).await?;
+        deploy_instances(&app_state.pool, &challenge, &node_name, uuid).await?;
 
     Ok(Json(NodeCreateResponse {
         node_id: uuid,
-        url_suffix: format!("/rpc/{}", uuid),
+        url_suffix: format!("/rpc/{uuid}"),
         instances,
         player_pubkey: pubkey.to_string(),
         player_privatekey: privatekey.to_string(),

@@ -1,5 +1,5 @@
 use alloy::transports::BoxFuture;
-use anyhow::Context;
+use anyhow::anyhow;
 use axum::{
     body::Body,
     http::Request,
@@ -7,6 +7,7 @@ use axum::{
 };
 use jsonwebtoken::{DecodingKey, Validation};
 use reqwest::header::AUTHORIZATION;
+use serde::{Deserialize, Serialize};
 use tower_http::auth::AsyncAuthorizeRequest;
 use uuid::Uuid;
 
@@ -15,7 +16,7 @@ use crate::{
     error::{AppError, AppResult},
 };
 
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct AuthUserClaims {
     pub user_id: Uuid,
     pub exp: i64,
@@ -49,7 +50,7 @@ fn check_auth<B>(request: &Request<B>) -> AppResult<Uuid> {
     let app_state: &AppState = request
         .extensions()
         .get()
-        .context("AppState was not added as an extension")?;
+        .ok_or_else(|| anyhow!("AppState was not added as an extension"))?;
 
     let header = request
         .headers()

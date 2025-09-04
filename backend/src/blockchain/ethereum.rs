@@ -13,7 +13,7 @@ use alloy::{
     sol,
     sol_types::SolValue,
 };
-use anyhow::{Context, Result, bail};
+use anyhow::{Result, anyhow, bail};
 use async_trait::async_trait;
 use reqwest::Url;
 use tokio::time::{Duration, sleep};
@@ -73,7 +73,7 @@ impl BlockchainProvider for EthereumProvider {
 
         let level_addr = tx_receipt
             .contract_address
-            .context("Failed to get level address")?;
+            .ok_or_else(|| anyhow!("Failed to get level address"))?;
 
         Ok(level_addr.to_string())
     }
@@ -110,7 +110,7 @@ impl BlockchainProvider for EthereumProvider {
         let encoded = debug_trace.try_into_default_frame()?.return_value;
         let decoded = Vec::<Address>::abi_decode(&encoded, true)?;
 
-        let instances = decoded.iter().map(|addr| addr.to_string()).collect();
+        let instances = decoded.iter().map(ToString::to_string).collect();
 
         Ok(instances)
     }
@@ -172,7 +172,7 @@ impl BlockchainProvider for EthereumProvider {
 
         let exploit_addr = tx_receipt
             .contract_address
-            .context("Failed to get exploit address")?;
+            .ok_or_else(|| anyhow!("Failed to get exploit address"))?;
 
         let exploit = Exploit::new(exploit_addr, &self.provider);
 
@@ -211,6 +211,10 @@ async fn get_transaction_receipt_with_retry(
     bail!("Failed to get transaction receipt");
 }
 
+// TODO take a look at wallet_getCapabilities method
+// TODO take a look at wallet_sendTransaction & odyssey_sendTransaction methods
+// TODO take a look at eth_sendTransaction method
+// TODO check that we filter all broken methods
 pub fn filter_methods(req: &RpcRequest) -> AppResult<()> {
     if req.method.starts_with("anvil_")
         || req.method.starts_with("hardhat_")

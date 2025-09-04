@@ -1,7 +1,9 @@
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use thiserror::Error;
 
 // TODO look which fields can be optional for anvil and solana
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct RpcRequest {
     pub jsonrpc: String,
     pub id: u64,
@@ -9,14 +11,14 @@ pub struct RpcRequest {
     pub params: Option<Vec<Value>>,
 }
 
-#[derive(Debug, serde::Serialize, thiserror::Error)]
+#[derive(Debug, Serialize, Error)]
 pub struct RpcError {
     jsonrpc: String,
     id: u64,
     error: RpcErrorDetail,
 }
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug, Serialize)]
 struct RpcErrorDetail {
     code: i32,
     message: String,

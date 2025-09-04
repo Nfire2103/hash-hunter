@@ -7,6 +7,6 @@ mod routes;
 mod state;
 
 pub use app::build;
-pub use config::AppConfig;
-pub use routes::node::NodeState;
+pub use config::{Config, DatabaseArgs};
+pub use routes::node::{NodeArgs, NodeState};
 pub use state::AppState;

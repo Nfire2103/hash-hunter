@@ -17,9 +17,6 @@ pub fn router() -> Router<reqwest::Client> {
     Router::new().route("/rpc/{uuid}", post(call))
 }
 
-// TODO take a look at wallet_getCapabilities method
-// TODO take a look at wallet_sendTransaction & odyssey_sendTransaction methods
-// TODO take a look at eth_sendTransaction method
 async fn call(
     Extension(app_state): Extension<AppState>,
     State(http_client): State<reqwest::Client>,
@@ -38,7 +35,7 @@ async fn call(
     node_type.filter_methods(&req)?;
 
     let response = http_client
-        .post(format!("http://{}-{}", node_type, uuid))
+        .post(format!("http://{node_type}-{uuid}"))
         .json(&req)
         .send()
         .await?;

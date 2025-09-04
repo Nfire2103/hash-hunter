@@ -28,8 +28,7 @@ pub struct Node {
     pub instances: Vec<String>,
     pub pod_name: String,
     pub pod_uid: String,
-    #[sqlx(rename = "type")]
-    pub node_type: NodeType,
+    pub r#type: NodeType,
     pub last_activity: NaiveDateTime,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,

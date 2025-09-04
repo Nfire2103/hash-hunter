@@ -1,4 +1,4 @@
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{Result, anyhow, bail};
 use axum::{Extension, Json, extract::State};
 use k8s_openapi::api::{
     apps::v1::Deployment,
@@ -44,20 +44,20 @@ pub async fn create(
     State(state): State<NodeState>,
     Json(req): Json<NodeCreateRequest>,
 ) -> AppResult<Json<NodeCreateResponse>> {
-    let challenge = get_challenge(&app_state.pool, &req.challenge_id).await?;
+    let challenge = get_challenge(&app_state.pool, req.challenge_id).await?;
 
-    let node_type = NodeType::from(&challenge.blockchain);
-    let node_id = create_node(&app_state.pool, &user_id, &challenge.id, &node_type).await?;
+    let node_type = NodeType::from(challenge.blockchain);
+    let node_id = create_node(&app_state.pool, user_id, challenge.id, node_type).await?;
 
-    let node_name = deploy_node(&state, &node_type, &node_id).await?;
-    wait_pod_running(&app_state.pool, &state, &node_id, &node_name).await?;
+    let node_name = deploy_node(&state, node_id, node_type).await?;
+    wait_pod_running(&app_state.pool, &state, &node_name, node_id).await?;
 
     let ((pubkey, privatekey), instances) =
-        deploy_instances(&app_state.pool, &node_id, &node_name, &challenge).await?;
+        deploy_instances(&app_state.pool, &challenge, &node_name, node_id).await?;
 
     Ok(Json(NodeCreateResponse {
         node_id,
-        url_suffix: format!("/rpc/{}", node_id),
+        url_suffix: format!("/rpc/{node_id}"),
         instances,
         player_pubkey: pubkey.to_string(),
         player_privatekey: privatekey.to_string(),
@@ -66,9 +66,9 @@ pub async fn create(
 
 pub async fn create_node(
     pool: &PgPool,
-    user_id: &Uuid,
-    challenge_id: &Uuid,
-    node_type: &NodeType,
+    user_id: Uuid,
+    challenge_id: Uuid,
+    node_type: NodeType,
 ) -> AppResult<Uuid> {
     let node_id = sqlx::query_scalar::<_, Uuid>(
         "INSERT INTO node (user_id, challenge_id, type)
@@ -83,14 +83,26 @@ pub async fn create_node(
     Ok(node_id)
 }
 
+pub async fn deploy_node(state: &NodeState, node_id: Uuid, node_type: NodeType) -> Result<String> {
+    let (deployment, service) = fill_manifests(state, node_id, node_type)?;
+
+    let deployments: Api<Deployment> = Api::default_namespaced(state.kube_client.clone());
+    deployments.create(&Default::default(), &deployment).await?;
+
+    let services: Api<Service> = Api::default_namespaced(state.kube_client.clone());
+    services.create(&Default::default(), &service).await?;
+
+    Ok(format!("{node_type}-{node_id}"))
+}
+
 fn fill_manifests(
     state: &NodeState,
-    node_type: &NodeType,
-    node_id: &Uuid,
+    node_id: Uuid,
+    node_type: NodeType,
 ) -> Result<(Deployment, Service)> {
     let mut context = tera::Context::new();
-    context.insert("node", node_type);
-    context.insert("uuid", node_id);
+    context.insert("node", &node_type);
+    context.insert("uuid", &node_id);
 
     let deployment = state.tera.render(&state.deployment_file, &context)?;
     let service = state.tera.render(&state.service_file, &context)?;
@@ -101,29 +113,17 @@ fn fill_manifests(
     Ok((deployment, service))
 }
 
-pub async fn deploy_node(state: &NodeState, node_type: &NodeType, node_id: &Uuid) -> Result<String> {
-    let (deployment, service) = fill_manifests(state, node_type, node_id)?;
-
-    let deployments: Api<Deployment> = Api::default_namespaced(state.kube_client.clone());
-    deployments.create(&Default::default(), &deployment).await?;
-
-    let services: Api<Service> = Api::default_namespaced(state.kube_client.clone());
-    services.create(&Default::default(), &service).await?;
-
-    Ok(format!("{}-{}", node_type, node_id))
-}
-
 pub async fn wait_pod_running(
     pool: &PgPool,
     state: &NodeState,
-    node_id: &Uuid,
     node_name: &str,
+    node_id: Uuid,
 ) -> Result<()> {
     let pods: Api<Pod> = Api::default_namespaced(state.kube_client.clone());
     let pod = get_pod_with_retry(&pods, node_name, 50).await?;
 
-    let pod_name = pod.name().context("Failed to deploy instance")?;
-    let pod_uip = pod.uid().context("Failed to deploy instance")?;
+    let pod_name = pod.name().ok_or_else(|| anyhow!("Failed to deploy instance"))?;
+    let pod_uip = pod.uid().ok_or_else(|| anyhow!("Failed to deploy instance"))?;
 
     let running = await_condition(pods, &pod_name, is_pod_running());
     timeout(Duration::from_secs(30), running).await??;
@@ -173,9 +173,9 @@ async fn await_service_up(client: &reqwest::Client, node_name: &str, max_retry: 
 
 pub async fn deploy_instances(
     pool: &PgPool,
-    node_id: &Uuid,
-    node_name: &str,
     challenge: &Challenge,
+    node_name: &str,
+    node_id: Uuid,
 ) -> Result<((&'static str, &'static str), Vec<String>)> {
     let node_url =
         Url::parse(&format!("http://{node_name}")).map_err(|_| anyhow!("Failed to parse url"))?;
