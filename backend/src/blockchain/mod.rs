@@ -7,11 +7,14 @@ use async_trait::async_trait;
 use ethereum::EthereumProvider;
 use reqwest::Url;
 use rpc::RpcRequest;
+use serde::{Deserialize, Serialize};
 use solana::SolanaProvider;
+use sqlx::Type;
+use strum::Display;
 
 use crate::error::AppResult;
 
-#[derive(Clone, serde::Serialize, sqlx::Type, strum::Display)]
+#[derive(Clone, Copy, Serialize, Type, Display)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 #[sqlx(type_name = "node_type", rename_all = "lowercase")]
@@ -23,31 +26,22 @@ pub enum NodeType {
 impl NodeType {
     pub fn filter_methods(&self, req: &RpcRequest) -> AppResult<()> {
         match self {
-            NodeType::Anvil => ethereum::filter_methods(req),
-            NodeType::Solana => unimplemented!("Solana filter methods not implemented"),
+            Self::Anvil => ethereum::filter_methods(req),
+            Self::Solana => unimplemented!("Solana filter methods not implemented"),
         }
     }
 }
 
-impl From<&NodeType> for BlockchainType {
-    fn from(node: &NodeType) -> Self {
-        match node {
-            NodeType::Anvil => BlockchainType::Ethereum,
-            NodeType::Solana => BlockchainType::Solana,
-        }
-    }
-}
-
-impl From<&BlockchainType> for NodeType {
-    fn from(blockchain: &BlockchainType) -> Self {
+impl From<BlockchainType> for NodeType {
+    fn from(blockchain: BlockchainType) -> Self {
         match blockchain {
-            BlockchainType::Ethereum => NodeType::Anvil,
-            BlockchainType::Solana => NodeType::Solana,
+            BlockchainType::Ethereum => Self::Anvil,
+            BlockchainType::Solana => Self::Solana,
         }
     }
 }
 
-#[derive(Clone, serde::Deserialize, serde::Serialize, sqlx::Type)]
+#[derive(Clone, Copy, Deserialize, Serialize, Type)]
 #[serde(rename_all = "lowercase")]
 #[sqlx(type_name = "blockchain_type", rename_all = "lowercase")]
 pub enum BlockchainType {
@@ -58,8 +52,17 @@ pub enum BlockchainType {
 impl BlockchainType {
     pub fn provider(&self, rpc_url: Url) -> Box<dyn BlockchainProvider> {
         match self {
-            BlockchainType::Ethereum => Box::new(EthereumProvider::new(rpc_url)),
-            BlockchainType::Solana => Box::new(SolanaProvider::new(rpc_url)),
+            Self::Ethereum => Box::new(EthereumProvider::new(rpc_url)),
+            Self::Solana => Box::new(SolanaProvider::new(rpc_url)),
+        }
+    }
+}
+
+impl From<NodeType> for BlockchainType {
+    fn from(node: NodeType) -> Self {
+        match node {
+            NodeType::Anvil => Self::Ethereum,
+            NodeType::Solana => Self::Solana,
         }
     }
 }

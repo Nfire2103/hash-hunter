@@ -4,6 +4,7 @@ use argon2::{
     password_hash::{SaltString, rand_core::OsRng},
 };
 use axum::{Extension, Json};
+use serde::Deserialize;
 
 use super::{User, UserWithToken, token::create_token};
 use crate::{
@@ -11,7 +12,7 @@ use crate::{
     error::{AppResult, ResultExt},
 };
 
-#[derive(serde::Deserialize)]
+#[derive(Deserialize)]
 pub struct RegisterRequest {
     email: String,
     username: String,
@@ -38,12 +39,12 @@ pub async fn register(
 
     Ok(Json(UserWithToken {
         token: create_token(user.id, &state.jwt_secret)?,
-        user,
+        inner: user,
     }))
 }
 
 pub async fn hash_password(password: String) -> Result<String> {
-    let hash = move || -> Result<String> {
+    let hash = move || {
         let salt = SaltString::generate(&mut OsRng);
         let password_hash = PasswordHash::generate(Argon2::default(), password, &salt)
             .map_err(|err| anyhow!(err))?

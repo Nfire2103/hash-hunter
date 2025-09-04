@@ -9,7 +9,7 @@ pub struct SolanaProvider {
 }
 
 impl SolanaProvider {
-    pub fn new(rpc_url: Url) -> Self {
+    pub const fn new(rpc_url: Url) -> Self {
         Self { _rpc_url: rpc_url }
     }
 }

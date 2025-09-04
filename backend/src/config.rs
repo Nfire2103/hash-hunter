@@ -1,6 +1,8 @@
-#[derive(clap::Parser)]
+use clap::{Args, Parser};
+
+#[derive(Parser)]
 #[command(version)]
-pub struct AppConfig {
+pub struct Config {
     #[clap(long, env)]
     pub address: std::net::SocketAddr,
 
@@ -14,7 +16,7 @@ pub struct AppConfig {
     pub node: crate::routes::node::NodeArgs,
 }
 
-#[derive(clap::Args)]
+#[derive(Args)]
 pub struct DatabaseArgs {
     #[arg(long, env)]
     pub database_url: String,

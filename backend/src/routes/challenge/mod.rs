@@ -1,6 +1,7 @@
 mod create;
 mod get;
 mod remove;
+mod solved;
 mod update;
 
 use axum::{
@@ -9,11 +10,13 @@ use axum::{
 };
 use chrono::NaiveDateTime;
 pub use get::get_challenge;
+use serde::Serialize;
+use sqlx::FromRow;
 use uuid::Uuid;
 
 use crate::{NodeState, blockchain::BlockchainType, middlewares::challenge::check_curr_user_is_owner};
 
-#[derive(serde::Serialize, sqlx::FromRow)]
+#[derive(Serialize, FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct Challenge {
     pub id: Uuid,

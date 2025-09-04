@@ -1,4 +1,5 @@
 use axum::{Extension, Json, extract::Path};
+use serde::Deserialize;
 use uuid::Uuid;
 
 use super::{User, register::hash_password};
@@ -7,7 +8,7 @@ use crate::{
     error::{AppError, AppResult, ResultExt},
 };
 
-#[derive(serde::Deserialize)]
+#[derive(Deserialize)]
 pub struct UpdateUserRequest {
     email: Option<String>,
     username: Option<String>,

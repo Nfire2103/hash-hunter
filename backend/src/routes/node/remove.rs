@@ -25,7 +25,7 @@ pub async fn remove(
         .await?
         .ok_or(AppError::NotFound)?;
 
-    remove_node(&app_state.pool, &state, &node_type, &uuid).await?;
+    remove_node(&app_state.pool, &state, uuid, node_type).await?;
 
     Ok(())
 }
@@ -33,10 +33,10 @@ pub async fn remove(
 pub async fn remove_node(
     pool: &PgPool,
     state: &NodeState,
-    node_type: &NodeType,
-    uuid: &Uuid,
+    uuid: Uuid,
+    node_type: NodeType,
 ) -> AppResult<()> {
-    let node_name = format!("{}-{}", node_type, uuid);
+    let node_name = format!("{node_type}-{uuid}");
 
     let deployments: Api<Deployment> = Api::default_namespaced(state.kube_client.clone());
     deployments.delete(&node_name, &DeleteParams::default()).await?;

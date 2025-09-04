@@ -9,22 +9,31 @@ use axum::{
     Router, middleware,
     routing::{delete, get, patch, post},
 };
+use serde::Serialize;
+use sqlx::FromRow;
 use uuid::Uuid;
 
 use crate::middlewares::user::check_is_curr_user;
 
-#[derive(serde::Serialize, sqlx::FromRow)]
+#[derive(Serialize, FromRow)]
 pub struct User {
     pub id: Uuid,
     pub email: String,
     pub username: String,
 }
 
-#[derive(serde::Serialize)]
+#[derive(Serialize)]
 pub struct UserWithToken {
     #[serde(flatten)]
-    user: User,
+    inner: User,
     token: String,
+}
+
+#[derive(FromRow)]
+pub struct UserWithPassword {
+    #[sqlx(flatten)]
+    inner: User,
+    password: String,
 }
 
 pub fn router() -> Router {
@@ -37,6 +46,6 @@ pub fn router() -> Router {
 
 pub fn auth_router() -> Router {
     Router::new()
-        .route("/register", post(register::register))
-        .route("/login", post(login::login))
+        .route("/user/register", post(register::register))
+        .route("/user/login", post(login::login))
 }

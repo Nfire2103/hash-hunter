@@ -20,7 +20,7 @@ pub async fn check_curr_user_is_owner(
     req: Request<Body>,
     next: Next,
 ) -> AppResult<Response> {
-    let challenge = get_challenge(&app_state.pool, &uuid).await?;
+    let challenge = get_challenge(&app_state.pool, uuid).await?;
     if user_id != challenge.author_id {
         return Err(AppError::Forbidden);
     }

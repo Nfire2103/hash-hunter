@@ -2,16 +2,18 @@ use axum::{
     Extension, Json,
     extract::{Path, State},
 };
+use serde::Deserialize;
 use uuid::Uuid;
 
-use super::{Challenge, create::is_can_be_solved, get_challenge};
+use super::{Challenge, get_challenge};
 use crate::{
     AppState, NodeState,
     error::{AppError, AppResult},
+    routes::challenge::solved::is_can_be_solved,
 };
 
-#[derive(Clone, serde::Deserialize)]
-pub struct UpdateChallenge {
+#[derive(Clone, Deserialize)]
+pub struct UpdateChallengeRequest {
     title: Option<String>,
     description: Option<String>,
     code: Option<String>,
@@ -22,21 +24,46 @@ pub struct UpdateChallenge {
     difficulty: Option<i16>,
 }
 
+impl Challenge {
+    fn with_updated_fields(self, req: UpdateChallengeRequest) -> Self {
+        Self {
+            id: self.id,
+            author_id: self.author_id,
+            title: req.title.unwrap_or(self.title),
+            description: req.description.unwrap_or(self.description),
+            code: req.code.unwrap_or(self.code),
+            bytecode: req.bytecode.unwrap_or(self.bytecode),
+            value: req.value.unwrap_or(self.value),
+            exploit_bytecode: req.exploit_bytecode.unwrap_or(self.exploit_bytecode),
+            exploit_value: req.exploit_value.unwrap_or(self.exploit_value),
+            difficulty: req.difficulty.unwrap_or(self.difficulty),
+            solved: self.solved,
+            blockchain: self.blockchain,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+        }
+    }
+}
+
 pub async fn update(
     Extension(user_id): Extension<Uuid>,
     Extension(app_state): Extension<AppState>,
     State(node_state): State<NodeState>,
     Path(uuid): Path<Uuid>,
-    Json(req): Json<UpdateChallenge>,
+    Json(req): Json<UpdateChallengeRequest>,
 ) -> AppResult<Json<Challenge>> {
-    if req.bytecode.is_some() || req.value.is_some() {
-        let challenge = get_challenge(&app_state.pool, &uuid).await?;
+    if req.bytecode.is_some()
+        || req.value.is_some()
+        || req.exploit_bytecode.is_some()
+        || req.exploit_value.is_some()
+    {
+        let challenge = get_challenge(&app_state.pool, uuid).await?;
 
         if !is_can_be_solved(
             &app_state.pool,
-            &user_id,
             &node_state,
             &challenge.with_updated_fields(req.clone()),
+            user_id,
         )
         .await?
         {
@@ -72,25 +99,4 @@ pub async fn update(
     .ok_or(AppError::NotFound)?;
 
     Ok(Json(challenge))
-}
-
-impl Challenge {
-    fn with_updated_fields(self, req: UpdateChallenge) -> Self {
-        Self {
-            id: self.id,
-            author_id: self.author_id,
-            title: req.title.unwrap_or(self.title),
-            description: req.description.unwrap_or(self.description),
-            code: req.code.unwrap_or(self.code),
-            bytecode: req.bytecode.unwrap_or(self.bytecode),
-            value: req.value.unwrap_or(self.value),
-            exploit_bytecode: req.exploit_bytecode.unwrap_or(self.exploit_bytecode),
-            exploit_value: req.exploit_value.unwrap_or(self.exploit_value),
-            difficulty: req.difficulty.unwrap_or(self.difficulty),
-            solved: self.solved,
-            blockchain: self.blockchain,
-            created_at: self.created_at,
-            updated_at: self.updated_at,
-        }
-    }
 }
