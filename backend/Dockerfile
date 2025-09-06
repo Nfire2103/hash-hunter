@@ -9,9 +9,9 @@ RUN cargo chef prepare --recipe-path /tmp/recipe.json && rm -rf /app/* && mv /tm
 
 FROM chef AS builder
 COPY --from=planner /app/recipe.json recipe.json
-RUN cargo chef cook --release --locked --recipe-path recipe.json --bin backend
+RUN cargo chef cook --release --locked --recipe-path recipe.json --bin api
 COPY . .
-RUN cargo build --release --frozen --bin backend
+RUN cargo build --release --frozen --bin api
 
 FROM debian:12-slim AS runtime
 
@@ -20,6 +20,6 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists
 
-COPY --from=builder /app/target/release/backend /usr/local/bin/app
+COPY --from=builder /app/target/release/api /usr/local/bin/app
 COPY --from=builder /app/templates /templates
 ENTRYPOINT ["/usr/local/bin/app"]
