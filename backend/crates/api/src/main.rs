@@ -8,7 +8,7 @@ use tracing::info;
 async fn main() -> Result<()> {
     tracing_subscriber::fmt().pretty().init();
 
-    dotenvy::dotenv().ok();
+    let _ = dotenvy::from_path(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(".env"));
 
     let args = Config::parse();
     let address = args.address;
