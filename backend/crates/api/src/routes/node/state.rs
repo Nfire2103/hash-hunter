@@ -20,7 +20,11 @@ impl NodeState {
         Ok(Self {
             http_client: reqwest::Client::new(),
             kube_client: load_kubeconfig(&args.kubeconfig).await?,
-            tera: Arc::new(Tera::new(&args.templates)?),
+            tera: Arc::new(Tera::new(&format!(
+                "{}/{}",
+                env!("CARGO_MANIFEST_DIR"),
+                args.templates
+            ))?),
             deployment_file: args.deployment_file,
             service_file: args.service_file,
         })
