@@ -42,10 +42,10 @@ use-self = "warn"
 [workspace.dependencies]
 k8s-openapi = "0.24.0"
 sqlx = { version = "0.8.3", features = [
-    "chrono",
-    "postgres",
-    "runtime-tokio",
-    "uuid",
+  "chrono",
+  "postgres",
+  "runtime-tokio",
+  "uuid",
 ] }
 clap = { version = "4.5.31", features = ["derive", "env"] }
 tokio = { version = "1.44.0", features = ["full"] }

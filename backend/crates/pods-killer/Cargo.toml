@@ -7,16 +7,16 @@ edition.workspace = true
 workspace = true
 
 [dependencies]
-sqlx.workspace = true
-clap.workspace = true
-tokio.workspace = true
 anyhow.workspace = true
-tracing-subscriber.workspace = true
-dotenvy.workspace = true
-tracing.workspace = true
-futures = "0.3.31"
+async-trait = "0.1.89"
 chrono.workspace = true
+clap.workspace = true
+dotenvy.workspace = true
+futures = "0.3.31"
+humantime = "2.3.0"
 k8s-openapi = { workspace = true, features = ["latest"] }
 kube = { workspace = true, features = ["runtime"] }
-async-trait = "0.1.89"
-humantime = "2.3.0"
+sqlx.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
