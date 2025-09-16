@@ -8,8 +8,9 @@ use futures::TryStreamExt;
 use sqlx::{PgPool, postgres::PgPoolOptions, types::uuid};
 use tracing::{debug, info, warn};
 mod kube_handler;
-use kube_handler::KubeHandler;
 use std::time::Duration;
+
+use kube_handler::KubeHandler;
 use uuid::Uuid;
 
 #[derive(Debug, sqlx::FromRow)]
@@ -69,7 +70,8 @@ async fn process_active_node(
         let inactive_duration = match inactive_duration_chrono.to_std() {
             Ok(dur) => dur,
             Err(_) => {
-                warn!(pod_name = %name, last_activity = %last_activity, "last_activity is in the future, skipping");
+                warn!(pod_name = %name, last_activity = %last_activity,
+                    "last_activity is in the future, skipping");
                 return Ok(());
             },
         };
