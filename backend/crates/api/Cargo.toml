@@ -3,6 +3,10 @@ name = "api"
 version.workspace = true
 edition.workspace = true
 
+[features]
+default = []
+dev = []
+
 [lints.rust]
 # missing-debug-implementations = "warn" # TODO
 unused-must-use = "deny"
