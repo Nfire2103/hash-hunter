@@ -5,6 +5,7 @@ use argon2::{
 };
 use axum::{Extension, Json};
 use serde::Deserialize;
+use utoipa::ToSchema;
 
 use super::{User, UserWithToken, token::create_token};
 use crate::{
@@ -12,13 +13,24 @@ use crate::{
     error::{AppResult, ResultExt},
 };
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 pub struct RegisterRequest {
     email: String,
     username: String,
     password: String,
 }
 
+#[utoipa::path(
+    post,
+    path = "/user/register",
+    request_body = RegisterRequest,
+    responses(
+        (status = 200, description = "User registered successfully", body = UserWithToken),
+        (status = 400, description = "Invalid request data or user already exists"),
+        (status = 500, description = "Internal server error")
+    ),
+    tag = "Users"
+)]
 pub async fn register(
     Extension(state): Extension<AppState>,
     Json(req): Json<RegisterRequest>,

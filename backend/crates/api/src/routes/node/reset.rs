@@ -18,7 +18,19 @@ use super::{
 };
 use crate::{AppState, error::AppResult, routes::challenge::get_challenge};
 
-// TODO maybe remove this endpoint
+#[utoipa::path(
+    post,
+    path = "/node/{uuid}/reset",
+    responses(
+        (status = 200, description = "Node reset successfully", body = NodeCreateResponse),
+        (status = 404, description = "Node not found"),
+        (status = 500, description = "Internal server error or Kubernetes deployment failure")
+    ),
+    security(
+        ("jwt_token" = [])
+    ),
+    tag = "Nodes"
+)]
 pub async fn reset(
     Extension(app_state): Extension<AppState>,
     State(state): State<NodeState>,

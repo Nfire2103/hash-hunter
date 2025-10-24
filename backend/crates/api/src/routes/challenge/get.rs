@@ -8,6 +8,19 @@ use crate::{
     error::{AppError, AppResult},
 };
 
+#[utoipa::path(
+    get,
+    path = "/challenge/{uuid}",
+    responses(
+        (status = 200, description = "Challenge retrieved successfully", body = Challenge),
+        (status = 404, description = "Challenge not found"),
+        (status = 500, description = "Internal server error")
+    ),
+    security(
+        ("jwt_token" = [])
+    ),
+    tag = "Challenges"
+)]
 pub async fn get(
     Extension(app_state): Extension<AppState>,
     Path(uuid): Path<Uuid>,

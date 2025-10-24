@@ -12,6 +12,7 @@ use kube::{
 use reqwest::Url;
 use sqlx::PgPool;
 use tokio::time::{Duration, sleep, timeout};
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use super::state::NodeState;
@@ -22,13 +23,13 @@ use crate::{
     routes::challenge::{Challenge, get_challenge},
 };
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NodeCreateRequest {
     challenge_id: Uuid,
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NodeCreateResponse {
     pub node_id: Uuid,
@@ -38,6 +39,30 @@ pub struct NodeCreateResponse {
     pub player_privatekey: String,
 }
 
+#[utoipa::path(
+    post,
+    path = "/node",
+    request_body = NodeCreateRequest,
+    responses(
+        (
+            status = 201,
+            description = "Node and challenge environment successfully deployed",
+            body = NodeCreateResponse
+        ),
+        (
+            status = 400,
+            description = "Invalid challenge ID or validation error"
+        ),
+        (
+            status = 500,
+            description = "Internal error or Kubernetes deployment failure"
+        )
+    ),
+    security(
+        ("jwt_token" = [])
+    ),
+    tag = "Nodes"
+)]
 pub async fn create(
     Extension(user_id): Extension<Uuid>,
     Extension(app_state): Extension<AppState>,

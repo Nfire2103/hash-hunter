@@ -3,6 +3,7 @@ use axum::{
     extract::{Path, State},
 };
 use serde::Deserialize;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use super::{Challenge, get_challenge};
@@ -12,7 +13,7 @@ use crate::{
     routes::challenge::solved::is_can_be_solved,
 };
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, ToSchema)]
 pub struct UpdateChallengeRequest {
     title: Option<String>,
     description: Option<String>,
@@ -45,6 +46,21 @@ impl Challenge {
     }
 }
 
+#[utoipa::path(
+    patch,
+    path = "/challenge/{uuid}",
+    request_body = UpdateChallengeRequest,
+    responses(
+        (status = 200, description = "Challenge updated successfully", body = Challenge),
+        (status = 404, description = "Challenge not found"),
+        (status = 400, description = "Challenge cannot be solved or invalid data"),
+        (status = 500, description = "Internal server error")
+    ),
+    security(
+        ("jwt_token" = [])
+    ),
+    tag = "Challenges"
+)]
 pub async fn update(
     Extension(user_id): Extension<Uuid>,
     Extension(app_state): Extension<AppState>,

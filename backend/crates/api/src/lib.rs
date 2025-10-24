@@ -1,6 +1,8 @@
 mod app;
 mod blockchain;
 mod config;
+#[cfg(feature = "swagger")]
+mod docs;
 mod error;
 mod middlewares;
 mod routes;

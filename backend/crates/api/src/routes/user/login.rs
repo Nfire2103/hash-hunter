@@ -2,6 +2,7 @@ use anyhow::anyhow;
 use argon2::{Argon2, PasswordHash, password_hash::Error};
 use axum::{Extension, Json};
 use serde::Deserialize;
+use utoipa::ToSchema;
 
 use super::{UserWithToken, token::create_token};
 use crate::{
@@ -10,12 +11,23 @@ use crate::{
     routes::user::get::get_user_by_email,
 };
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 pub struct LoginRequest {
     email: String,
     password: String,
 }
 
+#[utoipa::path(
+    post,
+    path = "/user/login",
+    request_body = LoginRequest,
+    responses(
+        (status = 200, description = "Login successful", body = UserWithToken),
+        (status = 401, description = "Unauthorized: Invalid credentials"),
+        (status = 500, description = "Internal Server Error"),
+    ),
+    tag = "Users"
+)]
 pub async fn login(
     Extension(state): Extension<AppState>,
     Json(req): Json<LoginRequest>,

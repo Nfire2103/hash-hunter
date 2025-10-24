@@ -5,6 +5,8 @@ use axum::{
     routing::post,
 };
 use serde_json::Value;
+#[cfg(feature = "swagger")]
+use utoipa::OpenApi;
 use uuid::Uuid;
 
 use crate::{
@@ -17,6 +19,21 @@ pub fn router() -> Router<reqwest::Client> {
     Router::new().route("/rpc/{uuid}", post(call))
 }
 
+#[utoipa::path(
+    post,
+    path = "/rpc/{uuid}",
+    request_body = RpcRequest,
+    responses(
+        (status = 200, description = "RPC call successful", body = Value),
+        (status = 404, description = "Node not found"),
+        (status = 400, description = "Invalid RPC method or request"),
+        (status = 500, description = "Internal server error or node communication failure")
+    ),
+    security(
+        ("jwt_token" = [])
+    ),
+    tag = "RPC"
+)]
 async fn call(
     Extension(app_state): Extension<AppState>,
     State(http_client): State<reqwest::Client>,
@@ -48,3 +65,18 @@ async fn call(
 
     Ok(Json(result))
 }
+
+#[cfg(feature = "swagger")]
+#[derive(OpenApi)]
+#[openapi(
+    paths(
+        call
+    ),
+    components(
+        schemas()
+    ),
+    tags(
+        (name = "RPC", description = "RPC calls to blockchain nodes")
+    )
+)]
+pub struct RpcApiDoc;
