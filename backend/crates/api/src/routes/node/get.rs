@@ -8,6 +8,19 @@ use crate::{
     error::{AppError, AppResult},
 };
 
+#[utoipa::path(
+    get,
+    path = "/node/{uuid}",
+    responses(
+        (status = 200, description = "Node retrieved successfully", body = Node),
+        (status = 404, description = "Node not found"),
+        (status = 500, description = "Internal server error")
+    ),
+    security(
+        ("jwt_token" = [])
+    ),
+    tag = "Nodes"
+)]
 pub async fn get(
     Extension(app_state): Extension<AppState>,
     Path(uuid): Path<Uuid>,

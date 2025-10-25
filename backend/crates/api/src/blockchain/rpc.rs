@@ -1,9 +1,10 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
+use utoipa::ToSchema;
 
 // TODO look which fields can be optional for anvil and solana
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, ToSchema)]
 pub struct RpcRequest {
     pub jsonrpc: String,
     pub id: u64,

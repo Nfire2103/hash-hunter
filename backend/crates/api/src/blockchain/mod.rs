@@ -11,10 +11,11 @@ use serde::{Deserialize, Serialize};
 use solana::SolanaProvider;
 use sqlx::Type;
 use strum::Display;
+use utoipa::ToSchema;
 
 use crate::error::AppResult;
 
-#[derive(Clone, Copy, Serialize, Type, Display)]
+#[derive(Clone, Copy, Serialize, Type, Display, ToSchema)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 #[sqlx(type_name = "node_type", rename_all = "lowercase")]
@@ -41,7 +42,7 @@ impl From<BlockchainType> for NodeType {
     }
 }
 
-#[derive(Clone, Copy, Deserialize, Serialize, Type)]
+#[derive(Clone, Copy, Deserialize, Serialize, Type, ToSchema)]
 #[serde(rename_all = "lowercase")]
 #[sqlx(type_name = "blockchain_type", rename_all = "lowercase")]
 pub enum BlockchainType {

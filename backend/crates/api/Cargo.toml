@@ -6,11 +6,10 @@ edition.workspace = true
 [features]
 default = []
 dev = []
+swagger = ["utoipa-swagger-ui"]
 
 [lints.rust]
-# missing-debug-implementations = "warn" # TODO
 unused-must-use = "deny"
-# unreachable-pub = "warn" # TODO
 unnameable-types = "warn"
 
 [dependencies]
@@ -46,4 +45,6 @@ tokio = { version = "1.44.0", features = ["full"] }
 tower-http = { version = "0.6.2", features = ["add-extension", "cors"] }
 tracing = "0.1.41"
 tracing-subscriber = "0.3.19"
+utoipa = { version = "5.4.0", features = ["axum_extras", "macros", "uuid"] }
+utoipa-swagger-ui = { version = "9.0.2", features = ["axum"], optional = true }
 uuid = { version = "1.15.1", features = ["serde"] }

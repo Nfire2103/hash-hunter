@@ -1,5 +1,6 @@
 use axum::{Extension, Json, extract::Path};
 use serde::Deserialize;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use super::{User, register::hash_password};
@@ -8,13 +9,28 @@ use crate::{
     error::{AppError, AppResult, ResultExt},
 };
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 pub struct UpdateUserRequest {
     email: Option<String>,
     username: Option<String>,
     password: Option<String>,
 }
 
+#[utoipa::path(
+    patch,
+    path = "/user/{uuid}",
+    request_body = UpdateUserRequest,
+    responses(
+        (status = 200, description = "User updated successfully", body = User),
+        (status = 404, description = "User not found"),
+        (status = 400, description = "Invalid request data or constraint conflict"),
+        (status = 500, description = "Internal server error")
+    ),
+    security(
+        ("jwt_token" = [])
+    ),
+    tag = "Users"
+)]
 pub async fn update(
     Extension(app_state): Extension<AppState>,
     Path(uuid): Path<Uuid>,

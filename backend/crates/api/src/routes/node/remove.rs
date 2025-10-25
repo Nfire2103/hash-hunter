@@ -14,6 +14,19 @@ use crate::{
     error::{AppError, AppResult},
 };
 
+#[utoipa::path(
+    delete,
+    path = "/node/{uuid}",
+    responses(
+        (status = 200, description = "Node deleted successfully"),
+        (status = 404, description = "Node not found"),
+        (status = 500, description = "Internal server error or Kubernetes deletion failure")
+    ),
+    security(
+        ("jwt_token" = [])
+    ),
+    tag = "Nodes"
+)]
 pub async fn remove(
     Extension(app_state): Extension<AppState>,
     State(state): State<NodeState>,

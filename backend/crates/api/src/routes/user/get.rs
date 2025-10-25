@@ -9,6 +9,19 @@ use crate::{
     routes::user::UserWithPassword,
 };
 
+#[utoipa::path(
+    get,
+    path = "/user/{uuid}",
+    responses(
+        (status = 200, description = "User retrieved successfully", body = User),
+        (status = 404, description = "User not found"),
+        (status = 500, description = "Internal server error")
+    ),
+    security(
+        ("jwt_token" = [])
+    ),
+    tag = "Users"
+)]
 pub async fn get(
     Extension(app_state): Extension<AppState>,
     Path(uuid): Path<Uuid>,

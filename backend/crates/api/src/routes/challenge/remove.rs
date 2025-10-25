@@ -6,6 +6,19 @@ use crate::{
     error::{AppError, AppResult},
 };
 
+#[utoipa::path(
+    delete,
+    path = "/challenge/{uuid}",
+    responses(
+        (status = 200, description = "Challenge deleted successfully"),
+        (status = 404, description = "Challenge not found"),
+        (status = 500, description = "Internal server error")
+    ),
+    security(
+        ("jwt_token" = [])
+    ),
+    tag = "Challenges"
+)]
 pub async fn remove(Extension(app_state): Extension<AppState>, Path(uuid): Path<Uuid>) -> AppResult<()> {
     let result = sqlx::query("DELETE FROM challenge WHERE id = $1")
         .bind(uuid)

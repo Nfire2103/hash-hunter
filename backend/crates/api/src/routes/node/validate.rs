@@ -5,16 +5,30 @@ use axum::{
 };
 use reqwest::Url;
 use serde::Serialize;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use super::{NodeState, get::get_node, remove::remove_node};
 use crate::{AppState, blockchain::BlockchainType, error::AppResult};
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 pub struct NodeValidateResponse {
     validated: bool,
 }
 
+#[utoipa::path(
+    post,
+    path = "/node/{uuid}/validate",
+    responses(
+        (status = 200, description = "Node validation completed", body = NodeValidateResponse),
+        (status = 404, description = "Node not found"),
+        (status = 500, description = "Internal server error")
+    ),
+    security(
+        ("jwt_token" = [])
+    ),
+    tag = "Nodes"
+)]
 pub async fn validate(
     Extension(app_state): Extension<AppState>,
     State(state): State<NodeState>,

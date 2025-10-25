@@ -14,11 +14,13 @@ use axum::{
 use chrono::NaiveDateTime;
 pub use remove::remove_node;
 pub use state::NodeState;
+#[cfg(feature = "swagger")]
+use utoipa::OpenApi;
 use uuid::Uuid;
 
 use crate::blockchain::NodeType;
 
-#[derive(serde::Serialize, sqlx::FromRow)]
+#[derive(serde::Serialize, sqlx::FromRow, utoipa::ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Node {
     pub id: Uuid,
@@ -29,8 +31,11 @@ pub struct Node {
     pub pod_name: String,
     pub pod_uid: String,
     pub r#type: NodeType,
+    #[schema(value_type = String, format = DateTime)]
     pub last_activity: NaiveDateTime,
+    #[schema(value_type = String, format = DateTime)]
     pub created_at: NaiveDateTime,
+    #[schema(value_type = String, format = DateTime)]
     pub updated_at: NaiveDateTime,
 }
 
@@ -42,3 +47,22 @@ pub fn router() -> Router<NodeState> {
         .route("/node/{uuid}", get(get::get))
         .route("/node/{uuid}", delete(remove::remove))
 }
+
+#[cfg(feature = "swagger")]
+#[derive(OpenApi)]
+#[openapi(
+    paths(
+        create::create,
+        get::get,
+        reset::reset,
+        validate::validate,
+        remove::remove
+    ),
+    components(
+        schemas()
+    ),
+    tags(
+        (name = "Nodes", description = "Blockchain nodes management")
+    )
+)]
+pub struct NodeApiDoc;

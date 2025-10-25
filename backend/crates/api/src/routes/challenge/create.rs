@@ -11,7 +11,7 @@ use crate::{
     routes::challenge::solved::is_can_be_solved,
 };
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, utoipa::ToSchema)]
 pub struct CreateChallengeRequest {
     title: String,
     description: String,
@@ -38,13 +38,27 @@ impl From<CreateChallengeRequest> for Challenge {
             exploit_value: req.exploit_value,
             difficulty: req.difficulty,
             solved: 0,
-            blockchain: req.blockchain,
+            blockchain: BlockchainType::Ethereum,
             created_at: Utc::now().naive_utc(),
             updated_at: Utc::now().naive_utc(),
         }
     }
 }
 
+#[utoipa::path(
+    post,
+    path = "/challenge",
+    request_body = CreateChallengeRequest,
+    responses(
+        (status = 200, description = "Challenge created successfully", body = Challenge),
+        (status = 400, description = "Challenge cannot be solved or invalid data"),
+        (status = 500, description = "Internal server error")
+    ),
+    security(
+        ("jwt_token" = [])
+    ),
+    tag = "Challenges"
+)]
 pub async fn create(
     Extension(user_id): Extension<Uuid>,
     Extension(app_state): Extension<AppState>,

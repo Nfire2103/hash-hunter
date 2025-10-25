@@ -11,18 +11,21 @@ use axum::{
 };
 use serde::Serialize;
 use sqlx::FromRow;
+#[cfg(feature = "swagger")]
+use utoipa::OpenApi;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::middlewares::user::check_is_curr_user;
 
-#[derive(Serialize, FromRow)]
+#[derive(Serialize, FromRow, ToSchema)]
 pub struct User {
     pub id: Uuid,
     pub email: String,
     pub username: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 pub struct UserWithToken {
     #[serde(flatten)]
     inner: User,
@@ -49,3 +52,28 @@ pub fn auth_router() -> Router {
         .route("/user/register", post(register::register))
         .route("/user/login", post(login::login))
 }
+
+#[cfg(feature = "swagger")]
+#[derive(OpenApi)]
+#[openapi(
+    paths(
+        login::login,
+        register::register,
+        get::get,
+        update::update,
+        remove::remove
+    ),
+    components(
+        schemas(
+            User,
+            UserWithToken,
+            login::LoginRequest,
+            register::RegisterRequest,
+            update::UpdateUserRequest
+        )
+    ),
+    tags(
+        (name = "Users", description = "Operations on users")
+    )
+)]
+pub struct UserApiDoc;
